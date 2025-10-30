@@ -26,17 +26,27 @@ def load_json(path, default):
     """Cargar archivo JSON"""
     ensure_data_dir()
     try:
-        if os.path.exists(path):
+        # Si es un directorio en lugar de archivo, eliminarlo
+        if os.path.exists(path) and os.path.isdir(path):
+            import shutil
+            shutil.rmtree(path)
+        
+        if os.path.exists(path) and os.path.isfile(path):
             with open(path, "r", encoding="utf-8") as f:
                 return json.load(f)
     except Exception as e:
-        st.warning(f"No se pudo cargar {path}: {e}")
+        st.sidebar.warning(f"No se pudo cargar {os.path.basename(path)}")
     return default
 
 def save_json(path, data):
     """Guardar archivo JSON"""
     ensure_data_dir()
     try:
+        # Si el path existe y es un directorio, eliminarlo
+        if os.path.exists(path) and os.path.isdir(path):
+            import shutil
+            shutil.rmtree(path)
+        
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
         return True
@@ -146,6 +156,9 @@ if not AREAS:
     }
     if save_json(AREAS_FILE, default_areas):
         AREAS = default_areas
+        st.sidebar.success("✅ Áreas inicializadas correctamente")
+    else:
+        st.sidebar.warning("⚠️ No se pudieron crear las áreas. Por favor, crea la carpeta 'data' manualmente.")
 
 # ------------------ Pages ------------------
 def page_inicio():
