@@ -3,7 +3,8 @@ from datetime import datetime
 import pandas as pd
 import streamlit as st
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+# Rutas de archivos - usar ruta relativa simple
+DATA_DIR = "data"
 AREAS_FILE = os.path.join(DATA_DIR, "areas.json")
 NEWS_FILE = os.path.join(DATA_DIR, "news.json")
 REG_FILE = os.path.join(DATA_DIR, "registros.csv")
@@ -13,28 +14,51 @@ ADMIN_PIN = os.getenv("GIA_ADMIN_PIN", "goleman123")
 st.set_page_config(page_title="GIA - Capacitaciones", page_icon="🎓", layout="wide")
 
 # ------------------ Helpers ------------------
+def ensure_data_dir():
+    """Asegurar que el directorio data existe"""
+    if not os.path.exists(DATA_DIR):
+        try:
+            os.makedirs(DATA_DIR, exist_ok=True)
+        except Exception as e:
+            st.error(f"No se pudo crear el directorio data: {e}")
+
 def load_json(path, default):
+    """Cargar archivo JSON"""
+    ensure_data_dir()
     try:
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return default
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+    except Exception as e:
+        st.warning(f"No se pudo cargar {path}: {e}")
+    return default
 
 def save_json(path, data):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    """Guardar archivo JSON"""
+    ensure_data_dir()
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+        return True
+    except Exception as e:
+        st.error(f"Error guardando {path}: {e}")
+        return False
 
 def ensure_csv(path):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+    """Asegurar que el archivo CSV existe con las columnas correctas"""
+    ensure_data_dir()
     if not os.path.exists(path):
-        cols = [
-            "timestamp","session_id","nombres","apellidos","cedula","correo","area",
-            "evento","duracion_seg","observaciones"
-        ]
-        pd.DataFrame(columns=cols).to_csv(path, index=False, encoding="utf-8")
+        try:
+            cols = [
+                "timestamp","session_id","nombres","apellidos","cedula","correo","area",
+                "evento","duracion_seg","observaciones"
+            ]
+            pd.DataFrame(columns=cols).to_csv(path, index=False, encoding="utf-8")
+        except Exception as e:
+            st.error(f"Error creando CSV: {e}")
 
 def append_registro(**kwargs):
+    """Agregar un registro al CSV"""
     ensure_csv(REG_FILE)
     row = {
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -48,22 +72,35 @@ def append_registro(**kwargs):
         "duracion_seg": kwargs.get("duracion_seg",""),
         "observaciones": kwargs.get("observaciones","")
     }
-    df = pd.DataFrame([row])
-    if os.path.getsize(REG_FILE) > 0:
-        df.to_csv(REG_FILE, mode="a", header=False, index=False, encoding="utf-8")
-    else:
-        df.to_csv(REG_FILE, mode="w", header=True, index=False, encoding="utf-8")
+    try:
+        df = pd.DataFrame([row])
+        if os.path.exists(REG_FILE) and os.path.getsize(REG_FILE) > 0:
+            df.to_csv(REG_FILE, mode="a", header=False, index=False, encoding="utf-8")
+        else:
+            df.to_csv(REG_FILE, mode="w", header=True, index=False, encoding="utf-8")
+        return True
+    except Exception as e:
+        st.error(f"Error guardando registro: {e}")
+        return False
 
 def get_registros_df():
+    """Obtener registros como DataFrame"""
     ensure_csv(REG_FILE)
     try:
-        if os.path.getsize(REG_FILE) > 0:
+        if os.path.exists(REG_FILE) and os.path.getsize(REG_FILE) > 0:
             return pd.read_csv(REG_FILE, encoding="utf-8")
-    except Exception:
-        pass
-    return pd.DataFrame()
+    except Exception as e:
+        st.warning(f"Error leyendo registros: {e}")
+    
+    # Retornar DataFrame vacío con las columnas correctas
+    cols = [
+        "timestamp","session_id","nombres","apellidos","cedula","correo","area",
+        "evento","duracion_seg","observaciones"
+    ]
+    return pd.DataFrame(columns=cols)
 
 def seconds_to_hms(s):
+    """Formatear segundos a HH:MM:SS"""
     s = int(s)
     h = s // 3600
     m = (s % 3600) // 60
@@ -95,8 +132,7 @@ if st.session_state.user:
 mode = st.sidebar.radio("Navegación", ["Inicio", "Registro", "Capacitaciones", "Noticias", "Admin"], index=0)
 
 # ------------------ Data ------------------
-# Asegurar que el directorio data existe
-os.makedirs(DATA_DIR, exist_ok=True)
+ensure_data_dir()
 
 AREAS = load_json(AREAS_FILE, {})
 NEWS = load_json(NEWS_FILE, [])
@@ -108,8 +144,8 @@ if not AREAS:
         "Ventas": ["https://www.youtube.com/watch?v=dQw4w9WgXcQ"],
         "Tecnología": ["https://www.youtube.com/watch?v=dQw4w9WgXcQ"]
     }
-    save_json(AREAS_FILE, default_areas)
-    AREAS = default_areas
+    if save_json(AREAS_FILE, default_areas):
+        AREAS = default_areas
 
 # ------------------ Pages ------------------
 def page_inicio():
@@ -138,7 +174,6 @@ def page_registro():
     if st.session_state.user:
         st.info("Ya te has registrado en esta sesión. Si deseas cambiar tus datos, recarga la página.")
         if st.button("Ir a Capacitaciones", type="primary"):
-            st.switch_page = "Capacitaciones"
             st.rerun()
         return
     
@@ -163,16 +198,16 @@ def page_registro():
                 "correo": correo.strip(),
                 "area": area.strip()
             }
-            append_registro(
+            if append_registro(
                 session_id=st.session_state.session_id,
                 **st.session_state.user,
                 evento="ingreso",
                 duracion_seg="",
                 observaciones="Registro inicial"
-            )
-            st.success("Registro guardado. Redirigiendo a Capacitaciones...")
-            time.sleep(1)
-            st.rerun()
+            ):
+                st.success("Registro guardado. Redirigiendo a Capacitaciones...")
+                time.sleep(1)
+                st.rerun()
 
 def page_capacitaciones():
     st.markdown("## 🎥 Capacitaciones por Área")
@@ -229,21 +264,20 @@ def page_capacitaciones():
             if st.session_state.timer_running and st.session_state.timer_start is not None:
                 final_time += int(time.time() - st.session_state.timer_start)
             
-            append_registro(
+            if append_registro(
                 session_id=st.session_state.session_id,
                 **st.session_state.user,
                 evento="finalizacion",
                 duracion_seg=final_time,
                 observaciones="Capacitación finalizada"
-            )
-            
-            # Reset
-            st.session_state.timer_running = False
-            st.session_state.timer_start = None
-            st.session_state.accumulated_time = 0
-            
-            st.success(f"Se registró la finalización. Duración: {seconds_to_hms(final_time)}")
-            st.balloons()
+            ):
+                # Reset
+                st.session_state.timer_running = False
+                st.session_state.timer_start = None
+                st.session_state.accumulated_time = 0
+                
+                st.success(f"Se registró la finalización. Duración: {seconds_to_hms(final_time)}")
+                st.balloons()
 
 def page_noticias():
     st.markdown("## 📰 Noticias y Anuncios")
@@ -266,11 +300,14 @@ def page_admin():
 
     st.success("Acceso concedido.")
 
-    with st.expander("📥 Descarga de registros"):
+    with st.expander("📥 Descarga de registros", expanded=True):
         df = get_registros_df()
-        st.dataframe(df, use_container_width=True)
-        csv = df.to_csv(index=False).encode("utf-8")
-        st.download_button("Descargar CSV", csv, file_name="registros.csv", mime="text/csv")
+        if not df.empty:
+            st.dataframe(df, use_container_width=True)
+            csv = df.to_csv(index=False).encode("utf-8")
+            st.download_button("Descargar CSV", csv, file_name=f"registros_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", mime="text/csv")
+        else:
+            st.info("No hay registros todavía.")
 
     with st.expander("🗓️ Gestionar noticias"):
         titulo = st.text_input("Título")
@@ -280,8 +317,8 @@ def page_admin():
         if st.button("Agregar noticia") and titulo:
             news = load_json(NEWS_FILE, [])
             news.append({"titulo": titulo, "fecha": fecha, "plataforma": plataforma, "detalle": detalle})
-            save_json(NEWS_FILE, news)
-            st.success("Noticia agregada. Recarga la página para ver los cambios.")
+            if save_json(NEWS_FILE, news):
+                st.success("Noticia agregada. Recarga la página para ver los cambios.")
 
     with st.expander("🏷️ Áreas y videos (JSON)"):
         current = json.dumps(AREAS, ensure_ascii=False, indent=2)
@@ -289,8 +326,8 @@ def page_admin():
         if st.button("Guardar áreas"):
             try:
                 new_data = json.loads(edited)
-                save_json(AREAS_FILE, new_data)
-                st.success("Áreas actualizadas. Recarga la página para aplicar cambios.")
+                if save_json(AREAS_FILE, new_data):
+                    st.success("Áreas actualizadas. Recarga la página para aplicar cambios.")
             except Exception as e:
                 st.error(f"JSON inválido: {e}")
 
