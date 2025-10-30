@@ -91,17 +91,37 @@ st.markdown("""
     }
     
     .stTextInput>div>div>input, .stSelectbox>div>div>select, .stTextArea>div>div>textarea {
-        background: rgba(15,20,25,0.8);
-        border: 2px solid rgba(0,212,255,0.3);
-        color: #e0e0e0;
+        background: rgba(15,20,25,0.8) !important;
+        border: 2px solid rgba(0,212,255,0.5) !important;
+        color: #ffffff !important;
         border-radius: 8px;
         font-family: 'Rajdhani', sans-serif;
-        font-size: 1rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    
+    .stTextInput>div>div>input::placeholder, .stSelectbox>div>div>select::placeholder, .stTextArea>div>div>textarea::placeholder {
+        color: rgba(255,255,255,0.4) !important;
     }
     
     .stTextInput>div>div>input:focus, .stSelectbox>div>div>select:focus, .stTextArea>div>div>textarea:focus {
-        border-color: #00d4ff;
-        box-shadow: 0 0 10px rgba(0,212,255,0.3);
+        border-color: #00d4ff !important;
+        box-shadow: 0 0 15px rgba(0,212,255,0.4) !important;
+        background: rgba(0,0,0,0.8) !important;
+        color: #00d4ff !important;
+    }
+    
+    .stTextInput label, .stSelectbox label, .stTextArea label {
+        color: #00d4ff !important;
+        font-weight: 700 !important;
+        font-size: 1.1rem !important;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .stSelectbox>div>div>select option {
+        background: #1a1f2e !important;
+        color: #ffffff !important;
     }
     
     .cyber-metric {
@@ -169,6 +189,101 @@ st.markdown("""
     .stError {
         background: rgba(255,67,54,0.1);
         border-left: 4px solid #ff4336;
+    }
+    
+    .stMetric {
+        background: linear-gradient(145deg, rgba(0,0,0,0.6), rgba(26,31,46,0.8));
+        border: 2px solid rgba(0,212,255,0.4);
+        border-radius: 12px;
+        padding: 1rem;
+    }
+    
+    .stMetric label {
+        color: #a0a0a0 !important;
+        font-size: 0.9rem !important;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+    
+    .stMetric [data-testid="stMetricValue"] {
+        color: #00d4ff !important;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 2rem !important;
+        font-weight: 900 !important;
+    }
+    
+    .stRadio > label {
+        color: #00d4ff !important;
+        font-weight: 700 !important;
+        font-size: 1.1rem !important;
+    }
+    
+    .stRadio > div {
+        background: rgba(15,20,25,0.6);
+        border: 1px solid rgba(0,212,255,0.3);
+        border-radius: 8px;
+        padding: 0.5rem;
+    }
+    
+    .stRadio [role="radiogroup"] label {
+        color: #e0e0e0 !important;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        transition: all 0.3s;
+    }
+    
+    .stRadio [role="radiogroup"] label:hover {
+        background: rgba(0,212,255,0.1);
+        color: #00d4ff !important;
+    }
+    
+    .stForm {
+        background: linear-gradient(145deg, rgba(26,31,46,0.95), rgba(35,45,63,0.95));
+        border: 2px solid rgba(0,212,255,0.3);
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    
+    .stMarkdown {
+        color: #e0e0e0 !important;
+    }
+    
+    p, span, div {
+        color: #e0e0e0;
+    }
+    
+    .stExpander [data-testid="stExpanderDetails"] {
+        background: rgba(15,20,25,0.8);
+        border: 1px solid rgba(0,212,255,0.2);
+        border-radius: 8px;
+        padding: 1rem;
+    }
+    
+    .stTabs [data-baseweb="tab-list"] {
+        background: rgba(15,20,25,0.8);
+        border-radius: 8px;
+        padding: 0.5rem;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        color: #a0a0a0 !important;
+        border-radius: 6px;
+        font-weight: 700;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        color: #00d4ff !important;
+        background: rgba(0,212,255,0.1);
+        border-bottom: 2px solid #00d4ff !important;
+    }
+    
+    .stDownloadButton > button {
+        background: linear-gradient(135deg, #00c864 0%, #00a854 100%) !important;
+    }
+    
+    .stDownloadButton > button:hover {
+        background: linear-gradient(135deg, #00a854 0%, #008844 100%) !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -498,10 +613,15 @@ def page_registro():
                 st.rerun()
 
 def page_capacitaciones():
-    st.markdown('<h1 class="main-header">🎥 MÓDULOS DE ENTRENAMIENTO</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">MÓDULOS DE CAPACITACIÓN</h1>', unsafe_allow_html=True)
 
     if not st.session_state.user:
-        st.warning("⚠️ ACCESO DENEGADO - REGISTRO REQUERIDO")
+        st.markdown("""
+        <div class="cyber-card">
+        <h3 style="color: #ffc107; text-align: center;">⚠️ ACCESO DENEGADO</h3>
+        <p style="text-align: center; color: #e0e0e0;">Debes registrarte para acceder al contenido de capacitación</p>
+        </div>
+        """, unsafe_allow_html=True)
         if st.button("📝 IR A REGISTRO", type="primary"):
             st.session_state.redirect_to = "Registro"
             st.rerun()
@@ -513,30 +633,45 @@ def page_capacitaciones():
     if st.session_state.timer_start:
         elapsed = int(time.time() - st.session_state.timer_start)
     
+    st.markdown("""
+    <div class="cyber-card">
+    """, unsafe_allow_html=True)
+    
     col1, col2, col3 = st.columns([2, 2, 1])
     with col1:
-        st.markdown(f"### 📍 SECTOR: {area}")
-        st.caption(f"👤 OPERADOR: {st.session_state.user.get('nombres')} {st.session_state.user.get('apellidos')}")
+        st.markdown(f"""
+        <div>
+            <h3 style="color: #00d4ff; margin: 0;">📍 {area}</h3>
+            <p style="color: #a0a0a0; margin: 0.5rem 0 0 0;">👤 {st.session_state.user.get('nombres')} {st.session_state.user.get('apellidos')}</p>
+        </div>
+        """, unsafe_allow_html=True)
     with col2:
         st.markdown(f'<div class="timer-display">{seconds_to_hms(elapsed)}</div>', unsafe_allow_html=True)
     with col3:
         if st.button("🔄 SYNC", help="Actualizar cronómetro"):
             st.rerun()
     
+    st.markdown("</div>", unsafe_allow_html=True)
+    
     st.divider()
     
     urls = AREAS.get(area, [])
     
     if not urls:
-        st.warning("⚠️ NO HAY CONTENIDO DISPONIBLE")
-        st.info("Contacta al administrador del sistema")
+        st.markdown("""
+        <div class="cyber-card">
+        <h3 style="color: #ffc107; text-align: center;">⚠️ NO HAY CONTENIDO DISPONIBLE</h3>
+        <p style="text-align: center; color: #e0e0e0;">Contacta al administrador del sistema para agregar material de capacitación</p>
+        </div>
+        """, unsafe_allow_html=True)
     else:
-        st.markdown("### 📚 CONTENIDO DE CAPACITACIÓN")
+        st.markdown('<h3 style="color: #00d4ff;">📚 CONTENIDO DE CAPACITACIÓN</h3>', unsafe_allow_html=True)
         
         for i, u in enumerate(urls, start=1):
             st.markdown(f"""
             <div class="cyber-card">
-            <h3>⚡ MÓDULO {i}</h3>
+            <h3 style="color: #00d4ff;">⚡ MÓDULO {i}</h3>
+            </div>
             """, unsafe_allow_html=True)
             
             if ("youtube.com" in u.lower()) or ("youtu.be" in u.lower()):
@@ -544,14 +679,21 @@ def page_capacitaciones():
             elif u.lower().endswith((".mp4",".webm",".mov")):
                 st.video(u)
             else:
-                st.markdown(f"🔗 [ACCEDER AL RECURSO]({u})")
-                st.caption(f"URL: {u}")
-            
-            st.markdown("</div>", unsafe_allow_html=True)
+                st.markdown(f"""
+                <div style="padding: 1rem; background: rgba(0,212,255,0.1); border-radius: 8px; border: 1px solid rgba(0,212,255,0.3);">
+                <a href="{u}" target="_blank" style="color: #00d4ff; text-decoration: none; font-weight: 700;">🔗 ACCEDER AL RECURSO EXTERNO</a>
+                <p style="color: #a0a0a0; font-size: 0.9rem; margin-top: 0.5rem;">URL: {u}</p>
+                </div>
+                """, unsafe_allow_html=True)
     
     st.divider()
-    st.markdown("### ✅ FINALIZAR SESIÓN")
-    st.info("⏱️ El tiempo será guardado automáticamente al finalizar")
+    
+    st.markdown("""
+    <div class="cyber-card">
+    <h3 style="color: #00d4ff; text-align: center;">✅ FINALIZAR CAPACITACIÓN</h3>
+    <p style="text-align: center; color: #e0e0e0;">El tiempo será guardado automáticamente al completar</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
@@ -577,22 +719,26 @@ def page_capacitaciones():
                 st.rerun()
 
 def page_noticias():
-    st.markdown('<h1 class="main-header">NOTICIAS</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">NOTICIAS Y ANUNCIOS</h1>', unsafe_allow_html=True)
     
     if not NEWS:
-        st.info("📭 NO HAY ANUNCIOS DISPONIBLES")
+        st.markdown("""
+        <div class="cyber-card">
+        <h3 style="color: #a0a0a0; text-align: center;">📭 NO HAY ANUNCIOS DISPONIBLES</h3>
+        </div>
+        """, unsafe_allow_html=True)
         return
     
     for idx, n in enumerate(NEWS):
         st.markdown(f"""
         <div class="cyber-card">
-        <h3 style="color: #ff00ff;">🗓️ {n.get('titulo','Sin título')}</h3>
-        <p><strong>📅 FECHA:</strong> {n.get('fecha','')}</p>
-        <p><strong>💻 PLATAFORMA:</strong> {n.get('plataforma','')}</p>
+        <h3 style="color: #00d4ff; border-bottom: 2px solid rgba(0,212,255,0.3); padding-bottom: 0.5rem; margin-bottom: 1rem;">🗓️ {n.get('titulo','Sin título')}</h3>
+        <p style="color: #e0e0e0;"><strong style="color: #00d4ff;">📅 FECHA:</strong> {n.get('fecha','')}</p>
+        <p style="color: #e0e0e0;"><strong style="color: #00d4ff;">💻 PLATAFORMA:</strong> {n.get('plataforma','')}</p>
         """, unsafe_allow_html=True)
         
         if n.get("detalle"):
-            st.markdown(f"<p>{n.get('detalle','')}</p>", unsafe_allow_html=True)
+            st.markdown(f"<p style='color: #e0e0e0; margin-top: 1rem;'>{n.get('detalle','')}</p>", unsafe_allow_html=True)
         
         st.markdown("</div>", unsafe_allow_html=True)
 
