@@ -6,63 +6,171 @@ import streamlit as st
 ADMIN_PIN = "goleman123"
 
 st.set_page_config(
-    page_title="GIA - Capacitaciones", 
-    page_icon="🎓", 
+    page_title="GIA CAPACITY", 
+    page_icon="⚡", 
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# CSS personalizado
+# CSS Cyberpunk
 st.markdown("""
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+    
+    * {
+        font-family: 'Orbitron', sans-serif;
+    }
+    
+    .stApp {
+        background: linear-gradient(135deg, #0a0e27 0%, #1a1a2e 50%, #16213e 100%);
+        color: #00ffff;
+    }
+    
     .main-header {
-        font-size: 3rem;
-        font-weight: bold;
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        font-size: 4rem;
+        font-weight: 900;
+        text-align: center;
+        background: linear-gradient(90deg, #00ffff 0%, #ff00ff 50%, #00ffff 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 1rem;
+        text-shadow: 0 0 30px rgba(0,255,255,0.5);
+        margin: 2rem 0;
+        animation: glow 2s ease-in-out infinite alternate;
     }
-    .timer-display {
-        font-size: 4rem;
-        font-weight: bold;
-        text-align: center;
-        color: #667eea;
+    
+    @keyframes glow {
+        from { filter: drop-shadow(0 0 5px #00ffff); }
+        to { filter: drop-shadow(0 0 20px #ff00ff); }
+    }
+    
+    .cyber-card {
+        background: rgba(26, 26, 46, 0.8);
+        border: 2px solid #00ffff;
+        border-radius: 15px;
         padding: 2rem;
-        background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        margin: 1rem 0;
+        box-shadow: 0 0 20px rgba(0,255,255,0.3), inset 0 0 20px rgba(0,255,255,0.1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .cyber-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(0,255,255,0.1), transparent);
+        animation: scan 3s linear infinite;
+    }
+    
+    @keyframes scan {
+        0% { transform: translateY(-100%); }
+        100% { transform: translateY(100%); }
+    }
+    
+    .timer-display {
+        font-size: 5rem;
+        font-weight: 900;
+        text-align: center;
+        color: #00ffff;
+        text-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff;
+        padding: 2rem;
+        background: rgba(0,0,0,0.5);
+        border: 3px solid #00ffff;
         border-radius: 20px;
         margin: 1rem 0;
+        animation: pulse 2s ease-in-out infinite;
     }
-    .info-card {
-        padding: 1.5rem;
-        border-radius: 10px;
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        margin: 1rem 0;
+    
+    @keyframes pulse {
+        0%, 100% { box-shadow: 0 0 10px #00ffff; }
+        50% { box-shadow: 0 0 30px #00ffff, 0 0 50px #ff00ff; }
     }
-    .video-container {
-        padding: 1rem;
-        border-radius: 10px;
-        background: white;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        margin: 1rem 0;
-    }
+    
     .stButton>button {
+        background: linear-gradient(90deg, #00ffff 0%, #ff00ff 100%);
+        color: #0a0e27;
+        border: none;
         border-radius: 10px;
-        font-weight: 600;
+        font-weight: 900;
+        padding: 1rem 2rem;
+        font-size: 1.2rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        box-shadow: 0 0 20px rgba(0,255,255,0.5);
         transition: all 0.3s;
     }
+    
     .stButton>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        transform: translateY(-3px);
+        box-shadow: 0 5px 30px rgba(0,255,255,0.8), 0 5px 30px rgba(255,0,255,0.5);
+    }
+    
+    .stTextInput>div>div>input, .stSelectbox>div>div>select, .stTextArea>div>div>textarea {
+        background: rgba(0,0,0,0.5);
+        border: 2px solid #00ffff;
+        color: #00ffff;
+        border-radius: 10px;
+        font-family: 'Orbitron', sans-serif;
+    }
+    
+    .stTextInput>div>div>input:focus, .stSelectbox>div>div>select:focus, .stTextArea>div>div>textarea:focus {
+        border-color: #ff00ff;
+        box-shadow: 0 0 15px rgba(255,0,255,0.5);
+    }
+    
+    .cyber-metric {
+        background: rgba(0,0,0,0.7);
+        border: 2px solid #00ffff;
+        border-radius: 15px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 0 15px rgba(0,255,255,0.3);
+    }
+    
+    .cyber-metric h3 {
+        color: #ff00ff;
+        font-size: 3rem;
+        margin: 0;
+        text-shadow: 0 0 10px #ff00ff;
+    }
+    
+    .cyber-metric p {
+        color: #00ffff;
+        font-size: 1rem;
+        margin: 0;
+    }
+    
+    .sidebar .sidebar-content {
+        background: rgba(10,14,39,0.95);
+        border-right: 2px solid #00ffff;
+    }
+    
+    h1, h2, h3 {
+        color: #00ffff;
+        text-shadow: 0 0 10px rgba(0,255,255,0.5);
+    }
+    
+    .stExpander {
+        background: rgba(26,26,46,0.5);
+        border: 1px solid #00ffff;
+        border-radius: 10px;
+    }
+    
+    .stDataFrame {
+        background: rgba(0,0,0,0.5);
+        border: 2px solid #00ffff;
+        border-radius: 10px;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ------------------ Database Setup ------------------
-DB_FILE = "gia_capacitaciones.db"
+DB_FILE = "gia_capacity.db"
 
 def init_database():
-    """Inicializar base de datos SQLite"""
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     
@@ -107,7 +215,6 @@ init_database()
 
 # ------------------ Helpers ------------------
 def get_areas():
-    """Obtener áreas desde la base de datos"""
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute("SELECT nombre, videos FROM areas")
@@ -131,7 +238,6 @@ def get_areas():
     return areas
 
 def save_areas(areas_dict):
-    """Guardar áreas en la base de datos"""
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute("DELETE FROM areas")
@@ -142,7 +248,6 @@ def save_areas(areas_dict):
     conn.close()
 
 def get_news():
-    """Obtener noticias desde la base de datos"""
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute("SELECT titulo, fecha, plataforma, detalle FROM noticias ORDER BY id DESC")
@@ -155,7 +260,6 @@ def get_news():
     return news
 
 def save_news(news_list):
-    """Guardar noticias en la base de datos"""
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute("DELETE FROM noticias")
@@ -168,7 +272,6 @@ def save_news(news_list):
     conn.close()
 
 def append_registro(**kwargs):
-    """Agregar un registro a la base de datos"""
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute('''
@@ -190,21 +293,18 @@ def append_registro(**kwargs):
     conn.close()
 
 def get_registros_df():
-    """Obtener todos los registros como DataFrame"""
     conn = sqlite3.connect(DB_FILE)
     df = pd.read_sql_query("SELECT * FROM registros ORDER BY id DESC", conn)
     conn.close()
     return df
 
 def delete_noticia(idx):
-    """Eliminar una noticia por índice"""
     news = get_news()
     if 0 <= idx < len(news):
         news.pop(idx)
         save_news(news)
 
 def seconds_to_hms(s):
-    """Formatear segundos a HH:MM:SS"""
     s = int(s)
     h = s // 3600
     m = (s % 3600) // 60
@@ -221,15 +321,17 @@ if "timer_start" not in st.session_state:
 if "user" not in st.session_state:
     st.session_state.user = {}
 
+if "redirect_to" not in st.session_state:
+    st.session_state.redirect_to = None
+
 # ------------------ Sidebar ------------------
 with st.sidebar:
-    st.markdown("### 🎓 GIA Capacitaciones")
+    st.markdown("### ⚡ GIA CAPACITY")
     
     if st.session_state.user:
         st.success(f"👤 **{st.session_state.user.get('nombres', '')}**")
         st.info(f"📍 {st.session_state.user.get('area', '')}")
         
-        # Mostrar cronómetro en sidebar
         if st.session_state.timer_start:
             elapsed = int(time.time() - st.session_state.timer_start)
             st.markdown(f"### ⏱️ {seconds_to_hms(elapsed)}")
@@ -237,7 +339,7 @@ with st.sidebar:
         st.divider()
     
     mode = st.radio(
-        "📋 Navegación", 
+        "📋 NAVEGACIÓN", 
         ["Inicio", "Registro", "Capacitaciones", "Noticias", "Admin"],
         index=0
     )
@@ -246,44 +348,53 @@ with st.sidebar:
 AREAS = get_areas()
 NEWS = get_news()
 
+# Manejar redirección
+if st.session_state.redirect_to:
+    mode = st.session_state.redirect_to
+    st.session_state.redirect_to = None
+
 # ------------------ Pages ------------------
 def page_inicio():
-    st.markdown('<h1 class="main-header">👋 Bienvenido a GIA Capacitaciones</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">⚡ GIA CAPACITY ⚡</h1>', unsafe_allow_html=True)
+    
+    st.markdown("""
+    <div class="cyber-card">
+    <h2 style="text-align: center; color: #ff00ff;">🚀 SISTEMA DE CAPACITACIÓN AVANZADO</h2>
+    <p style="text-align: center; font-size: 1.2rem;">Plataforma de entrenamiento con registro automático de tiempo</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     col1, col2 = st.columns([2, 1])
     
     with col1:
         st.markdown("""
-        <div class="info-card">
-        <h3>📚 ¿Cómo funciona?</h3>
-        <p><strong>Esta plataforma registra automáticamente tu tiempo de capacitación.</strong></p>
-        
-        <ol>
-            <li><strong>Regístrate</strong> con tus datos personales</li>
-            <li><strong>Selecciona tu área</strong> de capacitación</li>
-            <li><strong>El cronómetro inicia automáticamente</strong> al entrar</li>
-            <li><strong>Capacítate</strong> con los videos de tu área</li>
-            <li><strong>Finaliza</strong> cuando termines - el tiempo se guarda automáticamente</li>
+        <div class="cyber-card">
+        <h3 style="color: #00ffff;">📋 PROTOCOLO DE CAPACITACIÓN</h3>
+        <ol style="font-size: 1.1rem; line-height: 2rem;">
+            <li><strong style="color: #ff00ff;">Regístrate</strong> con tus datos personales</li>
+            <li><strong style="color: #ff00ff;">Selecciona tu área</strong> de capacitación</li>
+            <li><strong style="color: #ff00ff;">El cronómetro inicia automáticamente</strong> al entrar</li>
+            <li><strong style="color: #ff00ff;">Capacítate</strong> con los videos de tu área</li>
+            <li><strong style="color: #ff00ff;">Finaliza</strong> cuando termines - el tiempo se guarda automáticamente</li>
         </ol>
         </div>
         """, unsafe_allow_html=True)
         
-        st.button("🚀 Comenzar Capacitación", type="primary", use_container_width=True, key="start_btn")
-        if st.session_state.get("start_btn"):
+        if st.button("🚀 COMENZAR CAPACITACIÓN", type="primary", use_container_width=True):
+            st.session_state.redirect_to = "Registro"
             st.rerun()
     
     with col2:
-        st.metric("📊 Áreas Disponibles", len(AREAS))
-        df = get_registros_df()
-        if not df.empty:
-            usuarios_unicos = df['cedula'].nunique()
-            st.metric("👥 Usuarios Registrados", usuarios_unicos)
-            total_finalizaciones = len(df[df['evento'] == 'finalizacion'])
-            st.metric("✅ Capacitaciones Completadas", total_finalizaciones)
+        st.markdown(f"""
+        <div class="cyber-metric">
+            <h3>{len(AREAS)}</h3>
+            <p>ÁREAS ACTIVAS</p>
+        </div>
+        """, unsafe_allow_html=True)
 
     if NEWS:
         st.divider()
-        st.markdown("### 📢 Próximas Capacitaciones")
+        st.markdown("### 📡 TRANSMISIONES RECIENTES")
         for n in NEWS[:3]:
             with st.expander(f"🗓️ {n.get('titulo','Sin título')}", expanded=False):
                 st.write(f"**📅 Fecha:** {n.get('fecha','')}")
@@ -292,28 +403,34 @@ def page_inicio():
                     st.write(n.get("detalle",""))
 
 def page_registro():
-    st.markdown('<h1 class="main-header">📝 Registro de Ingreso</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">📝 REGISTRO DE ACCESO</h1>', unsafe_allow_html=True)
     
     if st.session_state.user:
-        st.success("✅ Ya estás registrado en esta sesión")
+        st.success("✅ ACCESO AUTORIZADO")
+        
+        st.markdown("""
+        <div class="cyber-card">
+        """, unsafe_allow_html=True)
         
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("Nombre", f"{st.session_state.user.get('nombres')} {st.session_state.user.get('apellidos')}")
+            st.metric("USUARIO", f"{st.session_state.user.get('nombres')} {st.session_state.user.get('apellidos')}")
         with col2:
-            st.metric("Cédula", st.session_state.user.get('cedula'))
+            st.metric("ID", st.session_state.user.get('cedula'))
         with col3:
-            st.metric("Área", st.session_state.user.get('area'))
+            st.metric("SECTOR", st.session_state.user.get('area'))
+        
+        st.markdown("</div>", unsafe_allow_html=True)
         
         st.divider()
         
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("🎥 Ir a Capacitaciones", type="primary", use_container_width=True):
+            if st.button("🎥 INICIAR CAPACITACIÓN", type="primary", use_container_width=True):
+                st.session_state.redirect_to = "Capacitaciones"
                 st.rerun()
         with col2:
-            if st.button("🔄 Nuevo Registro", use_container_width=True):
-                # Guardar tiempo antes de resetear
+            if st.button("🔄 NUEVO REGISTRO", use_container_width=True):
                 if st.session_state.timer_start:
                     final_time = int(time.time() - st.session_state.timer_start)
                     append_registro(
@@ -329,26 +446,26 @@ def page_registro():
                 st.rerun()
         return
     
-    st.info("💡 Completa el formulario para comenzar tu capacitación")
+    st.info("💡 Ingresa tus credenciales para acceder al sistema")
     
     with st.form("registro_form", clear_on_submit=False):
         col1, col2 = st.columns(2)
         
         with col1:
-            nombres = st.text_input("👤 Nombres *", placeholder="Ej: Juan Carlos")
-            cedula = st.text_input("🆔 Cédula *", placeholder="Ej: 1234567890")
+            nombres = st.text_input("👤 NOMBRES *", placeholder="Nombre completo")
+            cedula = st.text_input("🆔 CÉDULA *", placeholder="Número de identificación")
             area_options = list(AREAS.keys())
-            area = st.selectbox("📍 Área *", options=area_options)
+            area = st.selectbox("📍 ÁREA *", options=area_options)
         
         with col2:
-            apellidos = st.text_input("👤 Apellidos *", placeholder="Ej: Pérez García")
-            correo = st.text_input("📧 Correo *", placeholder="Ej: usuario@empresa.com")
+            apellidos = st.text_input("👤 APELLIDOS *", placeholder="Apellidos")
+            correo = st.text_input("📧 CORREO *", placeholder="email@empresa.com")
         
-        submitted = st.form_submit_button("🚀 Iniciar Capacitación", type="primary", use_container_width=True)
+        submitted = st.form_submit_button("⚡ INICIAR SESIÓN", type="primary", use_container_width=True)
         
         if submitted:
             if not (nombres and apellidos and cedula and correo and area):
-                st.error("⚠️ Por favor completa todos los campos obligatorios")
+                st.error("⚠️ TODOS LOS CAMPOS SON OBLIGATORIOS")
             else:
                 st.session_state.user = {
                     "nombres": nombres.strip(),
@@ -358,10 +475,8 @@ def page_registro():
                     "area": area.strip()
                 }
                 
-                # Iniciar cronómetro automáticamente
                 st.session_state.timer_start = time.time()
                 
-                # Guardar registro de ingreso
                 append_registro(
                     session_id=st.session_state.session_id,
                     **st.session_state.user,
@@ -370,70 +485,71 @@ def page_registro():
                     observaciones="Registro inicial - cronómetro iniciado"
                 )
                 
-                st.success("✅ ¡Registro exitoso! Cronómetro iniciado automáticamente")
+                st.success("✅ ACCESO CONCEDIDO")
                 st.balloons()
                 time.sleep(1)
+                st.session_state.redirect_to = "Capacitaciones"
                 st.rerun()
 
 def page_capacitaciones():
-    st.markdown('<h1 class="main-header">🎥 Material de Capacitación</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">🎥 MÓDULOS DE ENTRENAMIENTO</h1>', unsafe_allow_html=True)
 
     if not st.session_state.user:
-        st.warning("⚠️ Debes registrarte primero para acceder a las capacitaciones")
-        if st.button("📝 Ir a Registro", type="primary"):
+        st.warning("⚠️ ACCESO DENEGADO - REGISTRO REQUERIDO")
+        if st.button("📝 IR A REGISTRO", type="primary"):
+            st.session_state.redirect_to = "Registro"
             st.rerun()
         return
 
     area = st.session_state.user.get("area")
     
-    # Calcular tiempo transcurrido
     elapsed = 0
     if st.session_state.timer_start:
         elapsed = int(time.time() - st.session_state.timer_start)
     
-    # Header con info del usuario
     col1, col2, col3 = st.columns([2, 2, 1])
     with col1:
-        st.markdown(f"### 📍 {area}")
-        st.caption(f"👤 {st.session_state.user.get('nombres')} {st.session_state.user.get('apellidos')}")
+        st.markdown(f"### 📍 SECTOR: {area}")
+        st.caption(f"👤 OPERADOR: {st.session_state.user.get('nombres')} {st.session_state.user.get('apellidos')}")
     with col2:
         st.markdown(f'<div class="timer-display">{seconds_to_hms(elapsed)}</div>', unsafe_allow_html=True)
     with col3:
-        if st.button("🔄", help="Actualizar tiempo"):
+        if st.button("🔄 SYNC", help="Actualizar cronómetro"):
             st.rerun()
     
     st.divider()
     
-    # Videos
     urls = AREAS.get(area, [])
     
     if not urls:
-        st.warning("⚠️ No hay material de capacitación configurado para esta área")
-        st.info("Contacta al administrador para agregar contenido")
+        st.warning("⚠️ NO HAY CONTENIDO DISPONIBLE")
+        st.info("Contacta al administrador del sistema")
     else:
-        st.markdown("### 📚 Material de Capacitación")
+        st.markdown("### 📚 CONTENIDO DE CAPACITACIÓN")
         
         for i, u in enumerate(urls, start=1):
-            with st.container():
-                st.markdown(f"#### 📹 Módulo {i}")
-                
-                if ("youtube.com" in u.lower()) or ("youtu.be" in u.lower()):
-                    st.video(u)
-                elif u.lower().endswith((".mp4",".webm",".mov")):
-                    st.video(u)
-                else:
-                    st.markdown(f"🔗 [Abrir recurso externo]({u})")
-                    st.caption(f"URL: {u}")
-                
-                st.divider()
+            st.markdown(f"""
+            <div class="cyber-card">
+            <h3>⚡ MÓDULO {i}</h3>
+            """, unsafe_allow_html=True)
+            
+            if ("youtube.com" in u.lower()) or ("youtu.be" in u.lower()):
+                st.video(u)
+            elif u.lower().endswith((".mp4",".webm",".mov")):
+                st.video(u)
+            else:
+                st.markdown(f"🔗 [ACCEDER AL RECURSO]({u})")
+                st.caption(f"URL: {u}")
+            
+            st.markdown("</div>", unsafe_allow_html=True)
     
-    # Botón de finalización
-    st.markdown("### ✅ Finalizar Capacitación")
-    st.info("⏱️ El cronómetro se detuvo automáticamente al entrar. Al finalizar, se guardará tu tiempo total de capacitación.")
+    st.divider()
+    st.markdown("### ✅ FINALIZAR SESIÓN")
+    st.info("⏱️ El tiempo será guardado automáticamente al finalizar")
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        if st.button("🏁 Finalizar y Guardar Tiempo", type="primary", use_container_width=True):
+        if st.button("🏁 COMPLETAR CAPACITACIÓN", type="primary", use_container_width=True):
             if st.session_state.timer_start:
                 final_time = int(time.time() - st.session_state.timer_start)
                 
@@ -447,155 +563,163 @@ def page_capacitaciones():
                 
                 st.session_state.timer_start = None
                 
-                st.success(f"✅ ¡Capacitación finalizada! Tiempo total: **{seconds_to_hms(final_time)}**")
+                st.success(f"✅ MISIÓN COMPLETADA - TIEMPO TOTAL: **{seconds_to_hms(final_time)}**")
                 st.balloons()
                 time.sleep(2)
                 
-                # Resetear usuario
                 st.session_state.user = {}
                 st.rerun()
 
 def page_noticias():
-    st.markdown('<h1 class="main-header">📰 Noticias y Anuncios</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">📡 TRANSMISIONES</h1>', unsafe_allow_html=True)
     
     if not NEWS:
-        st.info("📭 No hay anuncios publicados en este momento")
+        st.info("📭 NO HAY TRANSMISIONES ACTIVAS")
         return
     
     for idx, n in enumerate(NEWS):
-        with st.container():
-            col1, col2 = st.columns([5, 1])
-            with col1:
-                st.markdown(f"### 🗓️ {n.get('titulo','Sin título')}")
-            with col2:
-                st.caption(f"#{idx+1}")
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                st.write(f"📅 **Fecha:** {n.get('fecha','')}")
-            with col2:
-                st.write(f"💻 **Plataforma:** {n.get('plataforma','')}")
-            
-            if n.get("detalle"):
-                st.markdown(n.get("detalle",""))
-            
-            st.divider()
+        st.markdown(f"""
+        <div class="cyber-card">
+        <h3 style="color: #ff00ff;">🗓️ {n.get('titulo','Sin título')}</h3>
+        <p><strong>📅 FECHA:</strong> {n.get('fecha','')}</p>
+        <p><strong>💻 PLATAFORMA:</strong> {n.get('plataforma','')}</p>
+        """, unsafe_allow_html=True)
+        
+        if n.get("detalle"):
+            st.markdown(f"<p>{n.get('detalle','')}</p>", unsafe_allow_html=True)
+        
+        st.markdown("</div>", unsafe_allow_html=True)
 
 def page_admin():
-    st.markdown('<h1 class="main-header">🔐 Panel de Administración</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">🔐 PANEL DE CONTROL</h1>', unsafe_allow_html=True)
     
-    pin = st.text_input("🔑 PIN de administrador", type="password", placeholder="Ingresa el PIN")
+    pin = st.text_input("🔑 CÓDIGO DE ACCESO", type="password", placeholder="Ingresa el PIN")
     
     if pin != ADMIN_PIN:
-        st.warning("⚠️ PIN incorrecto")
-        st.info("💡 PIN por defecto: **goleman123**")
+        st.warning("⚠️ ACCESO DENEGADO")
         return
 
-    st.success("✅ Acceso autorizado")
+    st.success("✅ ACCESO DE ADMINISTRADOR AUTORIZADO")
     st.divider()
 
-    tab1, tab2, tab3 = st.tabs(["📊 Registros", "📢 Noticias", "⚙️ Configuración"])
+    tab1, tab2, tab3 = st.tabs(["📊 BASE DE DATOS", "📢 TRANSMISIONES", "⚙️ CONFIGURACIÓN"])
 
     with tab1:
-        st.markdown("### 📊 Base de Datos de Registros")
+        st.markdown("### 📊 REGISTROS DEL SISTEMA")
         df = get_registros_df()
         
         if not df.empty:
             col1, col2, col3, col4 = st.columns(4)
             with col1:
-                st.metric("📝 Total Registros", len(df))
+                st.markdown(f"""
+                <div class="cyber-metric">
+                    <h3>{len(df)}</h3>
+                    <p>REGISTROS</p>
+                </div>
+                """, unsafe_allow_html=True)
             with col2:
                 ingresos = len(df[df['evento'] == 'ingreso'])
-                st.metric("🚪 Ingresos", ingresos)
+                st.markdown(f"""
+                <div class="cyber-metric">
+                    <h3>{ingresos}</h3>
+                    <p>INGRESOS</p>
+                </div>
+                """, unsafe_allow_html=True)
             with col3:
                 finalizaciones = len(df[df['evento'] == 'finalizacion'])
-                st.metric("✅ Finalizaciones", finalizaciones)
+                st.markdown(f"""
+                <div class="cyber-metric">
+                    <h3>{finalizaciones}</h3>
+                    <p>COMPLETADOS</p>
+                </div>
+                """, unsafe_allow_html=True)
             with col4:
                 usuarios_unicos = df['cedula'].nunique()
-                st.metric("👥 Usuarios Únicos", usuarios_unicos)
+                st.markdown(f"""
+                <div class="cyber-metric">
+                    <h3>{usuarios_unicos}</h3>
+                    <p>USUARIOS</p>
+                </div>
+                """, unsafe_allow_html=True)
             
             st.divider()
             st.dataframe(df, use_container_width=True, height=400)
             
             csv = df.to_csv(index=False).encode("utf-8")
             st.download_button(
-                "📥 Descargar Todos los Registros (CSV)", 
+                "📥 DESCARGAR BASE DE DATOS", 
                 csv, 
-                file_name=f"registros_gia_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", 
+                file_name=f"gia_capacity_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", 
                 mime="text/csv",
                 type="primary",
                 use_container_width=True
             )
         else:
-            st.info("📭 No hay registros en la base de datos")
+            st.info("📭 BASE DE DATOS VACÍA")
 
     with tab2:
-        st.markdown("### ➕ Publicar Nueva Noticia")
+        st.markdown("### ➕ NUEVA TRANSMISIÓN")
         
         with st.form("news_form"):
             col1, col2 = st.columns(2)
             with col1:
-                titulo = st.text_input("📌 Título *", placeholder="Ej: Capacitación en Ventas")
-                fecha = st.text_input("📅 Fecha y hora *", value=datetime.now().strftime("%Y-%m-%d %H:%M"))
+                titulo = st.text_input("📌 TÍTULO *")
+                fecha = st.text_input("📅 FECHA *", value=datetime.now().strftime("%Y-%m-%d %H:%M"))
             with col2:
-                plataforma = st.text_input("💻 Plataforma *", placeholder="Ej: Zoom, Teams, Presencial")
-                detalle = st.text_area("📝 Descripción", placeholder="Detalles adicionales...")
+                plataforma = st.text_input("💻 PLATAFORMA *")
+                detalle = st.text_area("📝 DETALLES")
             
-            submitted = st.form_submit_button("➕ Publicar Noticia", type="primary", use_container_width=True)
+            submitted = st.form_submit_button("➕ PUBLICAR", type="primary", use_container_width=True)
             
             if submitted:
                 if titulo and fecha and plataforma:
                     news = get_news()
                     news.append({"titulo": titulo, "fecha": fecha, "plataforma": plataforma, "detalle": detalle})
                     save_news(news)
-                    st.success("✅ Noticia publicada exitosamente")
+                    st.success("✅ TRANSMISIÓN PUBLICADA")
                     st.rerun()
                 else:
-                    st.error("⚠️ Completa los campos obligatorios")
+                    st.error("⚠️ CAMPOS OBLIGATORIOS INCOMPLETOS")
         
         st.divider()
-        st.markdown("### 📰 Noticias Publicadas")
+        st.markdown("### 📰 TRANSMISIONES ACTIVAS")
         
         news_list = get_news()
         if news_list:
             for idx, n in enumerate(news_list):
-                with st.expander(f"🗓️ {n.get('titulo', 'Sin título')} - {n.get('fecha', '')}"):
+                with st.expander(f"🗓️ {n.get('titulo', 'Sin título')}"):
+                    st.write(f"**Fecha:** {n.get('fecha', '')}")
                     st.write(f"**Plataforma:** {n.get('plataforma', '')}")
                     st.write(f"**Detalle:** {n.get('detalle', 'N/A')}")
-                    if st.button(f"🗑️ Eliminar", key=f"del_{idx}"):
+                    if st.button(f"🗑️ ELIMINAR", key=f"del_{idx}"):
                         delete_noticia(idx)
-                        st.success("Noticia eliminada")
+                        st.success("Transmisión eliminada")
                         st.rerun()
         else:
-            st.info("📭 No hay noticias publicadas")
+            st.info("📭 NO HAY TRANSMISIONES")
 
     with tab3:
-        st.markdown("### ⚙️ Configuración de Áreas y Videos")
+        st.markdown("### ⚙️ CONFIGURACIÓN DE ÁREAS")
         
         current_areas = get_areas()
         current = json.dumps(current_areas, ensure_ascii=False, indent=2)
         
-        st.info("💡 Edita el JSON para agregar o modificar áreas y sus videos")
+        st.info("💡 Formato JSON: {\"Área\": [\"url1\", \"url2\"]}")
         
-        edited = st.text_area(
-            "JSON de configuración", 
-            value=current, 
-            height=400,
-            help='Formato: {"Nombre del Área": ["url1", "url2", "url3"]}'
-        )
+        edited = st.text_area("DATOS DE CONFIGURACIÓN", value=current, height=400)
         
         col1, col2 = st.columns([3, 1])
         with col1:
-            if st.button("💾 Guardar Cambios", type="primary", use_container_width=True):
+            if st.button("💾 GUARDAR CAMBIOS", type="primary", use_container_width=True):
                 try:
                     new_data = json.loads(edited)
                     save_areas(new_data)
-                    st.success("✅ Configuración actualizada")
+                    st.success("✅ CONFIGURACIÓN ACTUALIZADA")
                     st.rerun()
                 except Exception as e:
-                    st.error(f"❌ Error en el formato JSON: {e}")
+                    st.error(f"❌ ERROR EN FORMATO: {e}")
         with col2:
-            if st.button("🔄 Recargar", use_container_width=True):
+            if st.button("🔄 RECARGAR", use_container_width=True):
                 st.rerun()
 
 # ------------------ Router ------------------
