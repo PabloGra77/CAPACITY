@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime, timedelta
-import time
+from datetime import datetime
 import json
 import os
 
@@ -73,6 +72,12 @@ def format_time(seconds):
     secs = int(seconds % 60)
     return f"{hours:02d}:{minutes:02d}:{secs:02d}"
 
+def get_elapsed_time():
+    """Calcular tiempo transcurrido"""
+    if st.session_state.start_time:
+        return datetime.now().timestamp() - st.session_state.start_time
+    return 0
+
 # Inicializar session_state
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
@@ -93,19 +98,11 @@ st.markdown("""
     .stButton>button {
         width: 100%;
     }
-    .video-card {
-        padding: 20px;
-        border-radius: 10px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        margin: 10px 0;
-    }
     </style>
     """, unsafe_allow_html=True)
 
 # Sidebar
 with st.sidebar:
-    st.image("https://via.placeholder.com/200x80/4F46E5/FFFFFF?text=Logo", use_container_width=True)
     st.title("📚 Capacitación")
     
     if st.button("🔐 Modo Admin" if not st.session_state.is_admin else "👤 Modo Usuario"):
@@ -118,18 +115,20 @@ with st.sidebar:
         st.success(f"👋 ¡Hola, {st.session_state.user_data['nombres']}!")
         st.info(f"📍 Área: {st.session_state.user_data['area']}")
         
-        # Cronómetro
+        # Mostrar cronómetro (sin rerun automático)
         if st.session_state.start_time:
-            elapsed = time.time() - st.session_state.start_time
+            elapsed = get_elapsed_time()
             st.metric("⏱️ Tiempo en plataforma", format_time(elapsed))
-            time.sleep(1)
-            st.rerun()
+            
+            # Botón para actualizar manualmente
+            if st.button("🔄 Actualizar tiempo"):
+                st.rerun()
         
         st.divider()
         if st.button("🚪 Finalizar Sesión", type="primary"):
             # Guardar tiempo de sesión
             if st.session_state.start_time:
-                elapsed = time.time() - st.session_state.start_time
+                elapsed = get_elapsed_time()
                 sessions = load_json(SESSIONS_FILE)
                 sessions.append({
                     "cedula": st.session_state.user_data['cedula'],
@@ -140,6 +139,7 @@ with st.sidebar:
                     "fecha": datetime.now().isoformat()
                 })
                 save_json(SESSIONS_FILE, sessions)
+                st.success(f"✅ Sesión guardada: {format_time(elapsed)}")
             
             st.session_state.logged_in = False
             st.session_state.user_data = None
@@ -154,13 +154,11 @@ def show_announcements():
         st.subheader("📢 Próximas Capacitaciones")
         for announcement in announcements:
             with st.container():
-                col1, col2 = st.columns([3, 1])
-                with col1:
-                    st.markdown(f"### {announcement['titulo']}")
-                    st.write(f"📅 **Fecha:** {announcement['fecha']} a las {announcement['hora']}")
-                    st.write(f"💻 **Plataforma:** {announcement['plataforma']}")
-                    if announcement.get('descripcion'):
-                        st.write(f"📝 {announcement['descripcion']}")
+                st.markdown(f"### {announcement['titulo']}")
+                st.write(f"📅 **Fecha:** {announcement['fecha']} a las {announcement['hora']}")
+                st.write(f"💻 **Plataforma:** {announcement['plataforma']}")
+                if announcement.get('descripcion'):
+                    st.write(f"📝 {announcement['descripcion']}")
                 st.divider()
     else:
         st.info("No hay capacitaciones programadas en este momento.")
@@ -213,33 +211,33 @@ if st.session_state.is_admin:
     with tab2:
         st.subheader("Crear Nuevo Anuncio")
         
-        with st.form("announcement_form"):
+        col1, col2 = st.columns(2)
+        
+        with col1:
             titulo = st.text_input("Título de la capacitación *")
-            col1, col2 = st.columns(2)
-            with col1:
-                fecha = st.date_input("Fecha *")
-            with col2:
-                hora = st.time_input("Hora *")
+            fecha = st.date_input("Fecha *")
             plataforma = st.text_input("Plataforma (Zoom, Teams, etc.) *")
+        
+        with col2:
+            hora = st.time_input("Hora *")
             descripcion = st.text_area("Descripción")
-            
-            if st.form_submit_button("Publicar Anuncio", type="primary"):
-                if titulo and plataforma:
-                    announcements = load_json(ANNOUNCEMENTS_FILE)
-                    announcements.append({
-                        "id": len(announcements) + 1,
-                        "titulo": titulo,
-                        "fecha": fecha.strftime("%Y-%m-%d"),
-                        "hora": hora.strftime("%H:%M"),
-                        "plataforma": plataforma,
-                        "descripcion": descripcion
-                    })
-                    save_json(ANNOUNCEMENTS_FILE, announcements)
-                    st.success("✅ Anuncio publicado exitosamente!")
-                    time.sleep(1)
-                    st.rerun()
-                else:
-                    st.error("Por favor complete los campos obligatorios.")
+        
+        if st.button("Publicar Anuncio", type="primary"):
+            if titulo and plataforma:
+                announcements = load_json(ANNOUNCEMENTS_FILE)
+                announcements.append({
+                    "id": len(announcements) + 1,
+                    "titulo": titulo,
+                    "fecha": fecha.strftime("%Y-%m-%d"),
+                    "hora": hora.strftime("%H:%M"),
+                    "plataforma": plataforma,
+                    "descripcion": descripcion
+                })
+                save_json(ANNOUNCEMENTS_FILE, announcements)
+                st.success("✅ Anuncio publicado exitosamente!")
+                st.rerun()
+            else:
+                st.error("Por favor complete los campos obligatorios.")
         
         st.divider()
         
@@ -282,6 +280,9 @@ if st.session_state.is_admin:
             st.subheader("Tiempo por Área")
             tiempo_por_area = df_sessions.groupby('area')['tiempo_segundos'].sum().sort_values(ascending=False)
             st.bar_chart(tiempo_por_area)
+            
+            st.subheader("Últimas 10 Sesiones")
+            st.dataframe(df_sessions.tail(10), use_container_width=True)
 
 # VISTA PRINCIPAL (No admin)
 else:
@@ -293,37 +294,34 @@ else:
             st.title("📚 Plataforma de Capacitación")
             st.subheader("Registro de Usuario")
             
-            with st.form("registro_form"):
-                nombres = st.text_input("Nombres *")
-                apellidos = st.text_input("Apellidos *")
-                cedula = st.text_input("Cédula *")
-                correo = st.text_input("Correo electrónico *")
-                area = st.selectbox("Área *", [""] + list(TRAINING_AREAS.keys()))
-                
-                submitted = st.form_submit_button("🚀 Comenzar Capacitación", type="primary")
-                
-                if submitted:
-                    if all([nombres, apellidos, cedula, correo, area]):
-                        # Guardar usuario
-                        users = load_json(USERS_FILE)
-                        user_data = {
-                            "nombres": nombres,
-                            "apellidos": apellidos,
-                            "cedula": cedula,
-                            "correo": correo,
-                            "area": area,
-                            "fecha_registro": datetime.now().isoformat()
-                        }
-                        users.append(user_data)
-                        save_json(USERS_FILE, users)
-                        
-                        # Iniciar sesión
-                        st.session_state.logged_in = True
-                        st.session_state.user_data = user_data
-                        st.session_state.start_time = time.time()
-                        st.rerun()
-                    else:
-                        st.error("⚠️ Por favor complete todos los campos obligatorios.")
+            nombres = st.text_input("Nombres *")
+            apellidos = st.text_input("Apellidos *")
+            cedula = st.text_input("Cédula *")
+            correo = st.text_input("Correo electrónico *")
+            area = st.selectbox("Área *", [""] + list(TRAINING_AREAS.keys()))
+            
+            if st.button("🚀 Comenzar Capacitación", type="primary"):
+                if all([nombres, apellidos, cedula, correo, area]):
+                    # Guardar usuario
+                    users = load_json(USERS_FILE)
+                    user_data = {
+                        "nombres": nombres,
+                        "apellidos": apellidos,
+                        "cedula": cedula,
+                        "correo": correo,
+                        "area": area,
+                        "fecha_registro": datetime.now().isoformat()
+                    }
+                    users.append(user_data)
+                    save_json(USERS_FILE, users)
+                    
+                    # Iniciar sesión
+                    st.session_state.logged_in = True
+                    st.session_state.user_data = user_data
+                    st.session_state.start_time = datetime.now().timestamp()
+                    st.rerun()
+                else:
+                    st.error("⚠️ Por favor complete todos los campos obligatorios.")
         
         with col2:
             show_announcements()
@@ -332,6 +330,16 @@ else:
         # PÁGINA DE CAPACITACIÓN
         st.title(f"🎓 Capacitación - {st.session_state.user_data['area']}")
         st.write(f"Bienvenido/a **{st.session_state.user_data['nombres']} {st.session_state.user_data['apellidos']}**")
+        
+        # Mostrar tiempo transcurrido actualizado
+        if st.session_state.start_time:
+            elapsed = get_elapsed_time()
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.info(f"⏱️ Tiempo en esta sesión: **{format_time(elapsed)}**")
+            with col2:
+                if st.button("🔄 Actualizar"):
+                    st.rerun()
         
         st.divider()
         
