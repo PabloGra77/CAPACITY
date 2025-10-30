@@ -1,360 +1,269 @@
-import streamlit as st
-import pandas as pd
+
+import os, json, time, uuid
 from datetime import datetime
-import json
-import os
+import pandas as pd
+import streamlit as st
 
-# Configuración de la página
-st.set_page_config(
-    page_title="Plataforma de Capacitación",
-    page_icon="📚",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+AREAS_FILE = os.path.join(DATA_DIR, "areas.json")
+NEWS_FILE = os.path.join(DATA_DIR, "news.json")
+REG_FILE = os.path.join(DATA_DIR, "registros.csv")
 
-# Archivos de datos
-USERS_FILE = "data/usuarios_registrados.json"
-ANNOUNCEMENTS_FILE = "data/anuncios.json"
-SESSIONS_FILE = "data/sesiones.json"
+ADMIN_PIN = os.getenv("GIA_ADMIN_PIN", "goleman123")
 
-# Crear carpeta data si no existe
-os.makedirs("data", exist_ok=True)
+st.set_page_config(page_title="GIA - Capacitaciones", page_icon="🎓", layout="wide")
 
-# Áreas de capacitación con videos
-TRAINING_AREAS = {
-    "Recursos Humanos": [
-        {"titulo": "Inducción RRHH", "url": "https://sharepoint.com/video1", "duracion": "15 min"},
-        {"titulo": "Políticas de la empresa", "url": "https://sharepoint.com/video2", "duracion": "20 min"},
-        {"titulo": "Beneficios y compensaciones", "url": "https://sharepoint.com/video3", "duracion": "10 min"}
-    ],
-    "Ventas": [
-        {"titulo": "Técnicas de ventas", "url": "https://sharepoint.com/video4", "duracion": "25 min"},
-        {"titulo": "CRM y gestión de clientes", "url": "https://sharepoint.com/video5", "duracion": "18 min"},
-        {"titulo": "Negociación efectiva", "url": "https://sharepoint.com/video6", "duracion": "22 min"}
-    ],
-    "Tecnología": [
-        {"titulo": "Seguridad informática", "url": "https://sharepoint.com/video7", "duracion": "30 min"},
-        {"titulo": "Herramientas colaborativas", "url": "https://sharepoint.com/video8", "duracion": "15 min"},
-        {"titulo": "Desarrollo ágil", "url": "https://sharepoint.com/video9", "duracion": "20 min"}
-    ],
-    "Finanzas": [
-        {"titulo": "Gestión presupuestaria", "url": "https://sharepoint.com/video10", "duracion": "25 min"},
-        {"titulo": "Análisis financiero", "url": "https://sharepoint.com/video11", "duracion": "20 min"},
-        {"titulo": "Control de costos", "url": "https://sharepoint.com/video12", "duracion": "18 min"}
-    ],
-    "Marketing": [
-        {"titulo": "Marketing digital", "url": "https://sharepoint.com/video13", "duracion": "22 min"},
-        {"titulo": "Redes sociales", "url": "https://sharepoint.com/video14", "duracion": "15 min"},
-        {"titulo": "Branding corporativo", "url": "https://sharepoint.com/video15", "duracion": "20 min"}
-    ]
-}
+# ------------------ Helpers ------------------
+def load_json(path, default):
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return default
 
-# Funciones de utilidad
-def load_json(filepath, default=[]):
-    """Cargar datos desde archivo JSON"""
-    if os.path.exists(filepath):
-        try:
-            with open(filepath, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except:
-            return default
-    return default
-
-def save_json(filepath, data):
-    """Guardar datos en archivo JSON"""
-    with open(filepath, 'w', encoding='utf-8') as f:
+def save_json(path, data):
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-def format_time(seconds):
-    """Formatear segundos a HH:MM:SS"""
-    hours = int(seconds // 3600)
-    minutes = int((seconds % 3600) // 60)
-    secs = int(seconds % 60)
-    return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+def ensure_csv(path):
+    if not os.path.exists(path):
+        cols = [
+            "timestamp","session_id","nombres","apellidos","cedula","correo","area",
+            "evento","duracion_seg","observaciones"
+        ]
+        pd.DataFrame(columns=cols).to_csv(path, index=False, encoding="utf-8")
 
-def get_elapsed_time():
-    """Calcular tiempo transcurrido"""
-    if st.session_state.start_time:
-        return datetime.now().timestamp() - st.session_state.start_time
-    return 0
-
-# Inicializar session_state
-if 'logged_in' not in st.session_state:
-    st.session_state.logged_in = False
-if 'user_data' not in st.session_state:
-    st.session_state.user_data = None
-if 'start_time' not in st.session_state:
-    st.session_state.start_time = None
-if 'is_admin' not in st.session_state:
-    st.session_state.is_admin = False
-
-# CSS personalizado
-st.markdown("""
-    <style>
-    .big-font {
-        font-size: 24px !important;
-        font-weight: bold;
+def append_registro(**kwargs):
+    ensure_csv(REG_FILE)
+    row = {
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "session_id": kwargs.get("session_id",""),
+        "nombres": kwargs.get("nombres",""),
+        "apellidos": kwargs.get("apellidos",""),
+        "cedula": kwargs.get("cedula",""),
+        "correo": kwargs.get("correo",""),
+        "area": kwargs.get("area",""),
+        "evento": kwargs.get("evento",""),
+        "duracion_seg": kwargs.get("duracion_seg",""),
+        "observaciones": kwargs.get("observaciones","")
     }
-    .stButton>button {
-        width: 100%;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+    df = pd.DataFrame([row])
+    df.to_csv(REG_FILE, mode="a", header=not os.path.getsize(REG_FILE), index=False, encoding="utf-8")
 
-# Sidebar
-with st.sidebar:
-    st.title("📚 Capacitación")
-    
-    if st.button("🔐 Modo Admin" if not st.session_state.is_admin else "👤 Modo Usuario"):
-        st.session_state.is_admin = not st.session_state.is_admin
-        st.rerun()
-    
-    st.divider()
-    
-    if st.session_state.logged_in:
-        st.success(f"👋 ¡Hola, {st.session_state.user_data['nombres']}!")
-        st.info(f"📍 Área: {st.session_state.user_data['area']}")
-        
-        # Mostrar cronómetro (sin rerun automático)
-        if st.session_state.start_time:
-            elapsed = get_elapsed_time()
-            st.metric("⏱️ Tiempo en plataforma", format_time(elapsed))
-            
-            # Botón para actualizar manualmente
-            if st.button("🔄 Actualizar tiempo"):
-                st.rerun()
-        
-        st.divider()
-        if st.button("🚪 Finalizar Sesión", type="primary"):
-            # Guardar tiempo de sesión
-            if st.session_state.start_time:
-                elapsed = get_elapsed_time()
-                sessions = load_json(SESSIONS_FILE)
-                sessions.append({
-                    "cedula": st.session_state.user_data['cedula'],
-                    "nombres": st.session_state.user_data['nombres'],
-                    "apellidos": st.session_state.user_data['apellidos'],
-                    "area": st.session_state.user_data['area'],
-                    "tiempo_segundos": int(elapsed),
-                    "fecha": datetime.now().isoformat()
-                })
-                save_json(SESSIONS_FILE, sessions)
-                st.success(f"✅ Sesión guardada: {format_time(elapsed)}")
-            
-            st.session_state.logged_in = False
-            st.session_state.user_data = None
-            st.session_state.start_time = None
-            st.rerun()
+def get_registros_df():
+    ensure_csv(REG_FILE)
+    try:
+        return pd.read_csv(REG_FILE, encoding="utf-8")
+    except Exception:
+        return pd.DataFrame()
 
-# Función para mostrar anuncios
-def show_announcements():
-    announcements = load_json(ANNOUNCEMENTS_FILE)
-    
-    if announcements:
-        st.subheader("📢 Próximas Capacitaciones")
-        for announcement in announcements:
-            with st.container():
-                st.markdown(f"### {announcement['titulo']}")
-                st.write(f"📅 **Fecha:** {announcement['fecha']} a las {announcement['hora']}")
-                st.write(f"💻 **Plataforma:** {announcement['plataforma']}")
-                if announcement.get('descripcion'):
-                    st.write(f"📝 {announcement['descripcion']}")
-                st.divider()
-    else:
-        st.info("No hay capacitaciones programadas en este momento.")
+def seconds_to_hms(s):
+    s = int(s)
+    h = s // 3600
+    m = (s % 3600) // 60
+    sec = s % 60
+    return f"{h:02d}:{m:02d}:{sec:02d}"
 
-# PANEL DE ADMINISTRACIÓN
-if st.session_state.is_admin:
-    st.title("🔐 Panel de Administración")
-    
-    tab1, tab2, tab3 = st.tabs(["📊 Registros", "📢 Anuncios", "📈 Estadísticas"])
-    
-    with tab1:
-        st.subheader("Usuarios Registrados")
-        
-        users = load_json(USERS_FILE)
-        sessions = load_json(SESSIONS_FILE)
-        
-        if users:
-            df_users = pd.DataFrame(users)
-            st.dataframe(df_users, use_container_width=True)
-            
-            # Exportar a CSV
-            csv = df_users.to_csv(index=False, encoding='utf-8-sig')
-            st.download_button(
-                label="📥 Descargar registros (CSV)",
-                data=csv,
-                file_name=f"usuarios_capacitacion_{datetime.now().strftime('%Y%m%d')}.csv",
-                mime="text/csv"
-            )
-        else:
-            st.info("No hay usuarios registrados todavía.")
-        
-        st.divider()
-        
-        st.subheader("Sesiones de Capacitación")
-        if sessions:
-            df_sessions = pd.DataFrame(sessions)
-            df_sessions['tiempo_formateado'] = df_sessions['tiempo_segundos'].apply(format_time)
-            st.dataframe(df_sessions, use_container_width=True)
-            
-            csv_sessions = df_sessions.to_csv(index=False, encoding='utf-8-sig')
-            st.download_button(
-                label="📥 Descargar sesiones (CSV)",
-                data=csv_sessions,
-                file_name=f"sesiones_capacitacion_{datetime.now().strftime('%Y%m%d')}.csv",
-                mime="text/csv"
-            )
-        else:
-            st.info("No hay sesiones registradas todavía.")
-    
-    with tab2:
-        st.subheader("Crear Nuevo Anuncio")
-        
+# ------------------ State ------------------
+if "session_id" not in st.session_state:
+    st.session_state.session_id = str(uuid.uuid4())
+
+if "timer_running" not in st.session_state:
+    st.session_state.timer_running = False
+if "timer_start" not in st.session_state:
+    st.session_state.timer_start = None
+if "elapsed" not in st.session_state:
+    st.session_state.elapsed = 0  # seconds
+
+if "user" not in st.session_state:
+    st.session_state.user = {}
+
+# ------------------ Sidebar ------------------
+st.sidebar.title("GIA Capacitaciones")
+mode = st.sidebar.radio("Navegación", ["Inicio", "Registro", "Capacitaciones", "Noticias", "Admin"], index=0)
+
+# ------------------ Data ------------------
+AREAS = load_json(AREAS_FILE, {})
+NEWS = load_json(NEWS_FILE, [])
+
+# ------------------ Pages ------------------
+def page_inicio():
+    st.markdown("## 👋 Bienvenido(a) a la plataforma de Capacitaciones GIA")
+    st.markdown("""
+Esta plataforma registra **tu ingreso** y **tiempo de capacitación**.  
+Sigue estos pasos:
+1. Ve a **Registro**, diligencia tus datos y elige tu **Área**.
+2. Serás dirigido a **Capacitaciones** con los videos de tu área.
+3. Inicia el **cronómetro** cuando comiences y finalízalo al terminar.
+4. Revisa anuncios en **Noticias**.
+    """)
+
+    if NEWS:
+        st.markdown("### 🗓️ Próximas noticias/eventos")
+        for n in NEWS:
+            with st.container(border=True):
+                st.write(f"**{n.get('titulo','(sin título)')}**")
+                st.write(f"📅 {n.get('fecha','') } · 🧭 {n.get('plataforma','')}")
+                st.write(n.get("detalle",""))
+
+def page_registro():
+    st.markdown("## 📝 Registro de Ingreso")
+    with st.form("registro_form", clear_on_submit=False):
         col1, col2 = st.columns(2)
-        
         with col1:
-            titulo = st.text_input("Título de la capacitación *")
-            fecha = st.date_input("Fecha *")
-            plataforma = st.text_input("Plataforma (Zoom, Teams, etc.) *")
-        
+            nombres = st.text_input("Nombres*", placeholder="Pablo Andrés")
+            cedula = st.text_input("Cédula*", placeholder="1234567890")
+            area = st.selectbox("Área*", options=list(AREAS.keys()) if AREAS else ["(Configurar en Admin)"])
         with col2:
-            hora = st.time_input("Hora *")
-            descripcion = st.text_area("Descripción")
-        
-        if st.button("Publicar Anuncio", type="primary"):
-            if titulo and plataforma:
-                announcements = load_json(ANNOUNCEMENTS_FILE)
-                announcements.append({
-                    "id": len(announcements) + 1,
-                    "titulo": titulo,
-                    "fecha": fecha.strftime("%Y-%m-%d"),
-                    "hora": hora.strftime("%H:%M"),
-                    "plataforma": plataforma,
-                    "descripcion": descripcion
-                })
-                save_json(ANNOUNCEMENTS_FILE, announcements)
-                st.success("✅ Anuncio publicado exitosamente!")
-                st.rerun()
-            else:
-                st.error("Por favor complete los campos obligatorios.")
-        
-        st.divider()
-        
-        # Mostrar anuncios existentes
-        announcements = load_json(ANNOUNCEMENTS_FILE)
-        if announcements:
-            st.subheader("Anuncios Publicados")
-            for i, ann in enumerate(announcements):
-                with st.expander(f"{ann['titulo']} - {ann['fecha']}"):
-                    st.write(f"**Hora:** {ann['hora']}")
-                    st.write(f"**Plataforma:** {ann['plataforma']}")
-                    st.write(f"**Descripción:** {ann.get('descripcion', 'N/A')}")
-                    if st.button(f"🗑️ Eliminar", key=f"del_{i}"):
-                        announcements.pop(i)
-                        save_json(ANNOUNCEMENTS_FILE, announcements)
-                        st.rerun()
-    
-    with tab3:
-        st.subheader("Estadísticas de Capacitación")
-        
-        sessions = load_json(SESSIONS_FILE)
-        users = load_json(USERS_FILE)
-        
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            st.metric("Total Usuarios", len(users))
-        
-        with col2:
-            st.metric("Total Sesiones", len(sessions))
-        
-        with col3:
-            if sessions:
-                total_time = sum(s['tiempo_segundos'] for s in sessions)
-                st.metric("Tiempo Total", format_time(total_time))
-        
-        if sessions:
-            df_sessions = pd.DataFrame(sessions)
-            
-            st.subheader("Tiempo por Área")
-            tiempo_por_area = df_sessions.groupby('area')['tiempo_segundos'].sum().sort_values(ascending=False)
-            st.bar_chart(tiempo_por_area)
-            
-            st.subheader("Últimas 10 Sesiones")
-            st.dataframe(df_sessions.tail(10), use_container_width=True)
+            apellidos = st.text_input("Apellidos*", placeholder="Granados Garay")
+            correo = st.text_input("Correo*", placeholder="usuario@empresa.com")
 
-# VISTA PRINCIPAL (No admin)
-else:
-    if not st.session_state.logged_in:
-        # PÁGINA DE REGISTRO
-        col1, col2 = st.columns([1, 1])
-        
-        with col1:
-            st.title("📚 Plataforma de Capacitación")
-            st.subheader("Registro de Usuario")
-            
-            nombres = st.text_input("Nombres *")
-            apellidos = st.text_input("Apellidos *")
-            cedula = st.text_input("Cédula *")
-            correo = st.text_input("Correo electrónico *")
-            area = st.selectbox("Área *", [""] + list(TRAINING_AREAS.keys()))
-            
-            if st.button("🚀 Comenzar Capacitación", type="primary"):
-                if all([nombres, apellidos, cedula, correo, area]):
-                    # Guardar usuario
-                    users = load_json(USERS_FILE)
-                    user_data = {
-                        "nombres": nombres,
-                        "apellidos": apellidos,
-                        "cedula": cedula,
-                        "correo": correo,
-                        "area": area,
-                        "fecha_registro": datetime.now().isoformat()
-                    }
-                    users.append(user_data)
-                    save_json(USERS_FILE, users)
-                    
-                    # Iniciar sesión
-                    st.session_state.logged_in = True
-                    st.session_state.user_data = user_data
-                    st.session_state.start_time = datetime.now().timestamp()
-                    st.rerun()
-                else:
-                    st.error("⚠️ Por favor complete todos los campos obligatorios.")
-        
-        with col2:
-            show_announcements()
-    
+        submitted = st.form_submit_button("Registrarme & Ir a Capacitaciones", type="primary")
+        if submitted:
+            if not (nombres and apellidos and cedula and correo and area and area in AREAS):
+                st.error("Completa todos los campos obligatorios y verifica el Área.")
+            else:
+                st.session_state.user = {
+                    "nombres": nombres.strip(),
+                    "apellidos": apellidos.strip(),
+                    "cedula": cedula.strip(),
+                    "correo": correo.strip(),
+                    "area": area.strip()
+                }
+                append_registro(
+                    session_id=st.session_state.session_id,
+                    **st.session_state.user,
+                    evento="ingreso",
+                    duracion_seg="",
+                    observaciones="Registro inicial"
+                )
+                st.success("Registro guardado. Redirigiendo a Capacitaciones...")
+                st.session_state._go_to = "Capacitaciones"
+
+def page_capacitaciones():
+    st.markdown("## 🎥 Capacitaciones por Área")
+
+    if not st.session_state.user:
+        st.info("Primero realiza el **Registro** para personalizar tus capacitaciones.")
+        return
+
+    area = st.session_state.user.get("area")
+    st.write(f"**Área seleccionada:** {area}")
+    urls = AREAS.get(area, [])
+
+    if not urls:
+        st.warning("No hay videos configurados para esta área. Solicita al administrador que los agregue en **Admin** → Áreas.")
     else:
-        # PÁGINA DE CAPACITACIÓN
-        st.title(f"🎓 Capacitación - {st.session_state.user_data['area']}")
-        st.write(f"Bienvenido/a **{st.session_state.user_data['nombres']} {st.session_state.user_data['apellidos']}**")
-        
-        # Mostrar tiempo transcurrido actualizado
-        if st.session_state.start_time:
-            elapsed = get_elapsed_time()
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                st.info(f"⏱️ Tiempo en esta sesión: **{format_time(elapsed)}**")
-            with col2:
-                if st.button("🔄 Actualizar"):
-                    st.rerun()
-        
-        st.divider()
-        
-        videos = TRAINING_AREAS.get(st.session_state.user_data['area'], [])
-        
-        st.subheader("📹 Videos de Capacitación")
-        
-        for i, video in enumerate(videos):
-            with st.container():
-                col1, col2 = st.columns([3, 1])
-                with col1:
-                    st.markdown(f"### {i+1}. {video['titulo']}")
-                    st.write(f"⏱️ Duración: {video['duracion']}")
-                with col2:
-                    st.link_button("▶️ Ver Video", video['url'], use_container_width=True)
-                st.divider()
-        
-        st.info("💡 **Nota:** El tiempo que pases en esta plataforma está siendo registrado. Asegúrate de completar todos los videos antes de finalizar la sesión.")
+        st.write("**Videos / Enlaces de capacitación**:")
+        for i, u in enumerate(urls, start=1):
+            # Para YouTube se puede usar st.video; para SharePoint mejor mostramos el enlace.
+            if ("youtube.com" in u.lower()) or ("youtu.be" in u.lower()) or u.lower().endswith((".mp4",".webm",".mov")):
+                st.write(f"Video {i}:")
+                st.video(u)
+            else:
+                st.markdown(f"- Enlace {i}: {u}")
+
+    # Cronómetro
+    st.divider()
+    st.markdown("### ⏱️ Cronómetro de capacitación")
+
+    # Mostrar tiempo transcurrido
+    if st.session_state.timer_running and st.session_state.timer_start is not None:
+        st.session_state.elapsed = int(time.time() - st.session_state.timer_start)
+
+    st.metric("Tiempo transcurrido", value=seconds_to_hms(st.session_state.elapsed))
+
+    colA, colB, colC = st.columns(3)
+    with colA:
+        if st.button("Iniciar", disabled=st.session_state.timer_running):
+            st.session_state.timer_running = True
+            st.session_state.timer_start = time.time()
+            st.toast("Cronómetro iniciado", icon="⏱️")
+    with colB:
+        if st.button("Pausar", disabled=not st.session_state.timer_running):
+            st.session_state.timer_running = False
+            if st.session_state.timer_start is not None:
+                st.session_state.elapsed = int(time.time() - st.session_state.timer_start)
+            st.toast("Cronómetro pausado", icon="⏸️")
+    with colC:
+        if st.button("Finalizar capacitación"):
+            # Detener y registrar
+            if st.session_state.timer_running and st.session_state.timer_start is not None:
+                st.session_state.elapsed = int(time.time() - st.session_state.timer_start)
+                st.session_state.timer_running = False
+                st.session_state.timer_start = None
+            append_registro(
+                session_id=st.session_state.session_id,
+                **st.session_state.user,
+                evento="finalizacion",
+                duracion_seg=st.session_state.elapsed,
+                observaciones="Capacitación finalizada"
+            )
+            st.success(f"Se registró la finalización. Duración: {seconds_to_hms(st.session_state.elapsed)}")
+            st.balloons()
+
+def page_noticias():
+    st.markdown("## 📰 Noticias y Anuncios")
+    if not NEWS:
+        st.info("No hay noticias por el momento.")
+        return
+    for n in NEWS:
+        with st.container(border=True):
+            st.write(f"**{n.get('titulo','(sin título)')}**")
+            st.write(f"📅 {n.get('fecha','') } · 🧭 {n.get('plataforma','')}")
+            st.write(n.get("detalle",""))
+
+def page_admin():
+    st.markdown("## 🔐 Admin")
+    pin = st.text_input("PIN de administrador", type="password", help="Configura GIA_ADMIN_PIN como variable de entorno para cambiarlo.")
+    if pin != ADMIN_PIN:
+        st.warning("Ingresa el PIN correcto para continuar.")
+        return
+
+    st.success("Acceso concedido.")
+
+    with st.expander("📥 Descarga de registros"):
+        df = get_registros_df()
+        st.dataframe(df, use_container_width=True)
+        csv = df.to_csv(index=False).encode("utf-8")
+        st.download_button("Descargar CSV", csv, file_name="registros.csv", mime="text/csv")
+
+    with st.expander("🗓️ Gestionar noticias"):
+        with st.form("news_form"):
+            titulo = st.text_input("Título")
+            fecha = st.text_input("Fecha (YYYY-MM-DD HH:MM)", value=datetime.now().strftime("%Y-%m-%d %H:%M"))
+            plataforma = st.text_input("Plataforma / Lugar")
+            detalle = st.text_area("Detalle")
+            add_news = st.form_submit_button("Agregar noticia")
+        if add_news and titulo:
+            news = load_json(NEWS_FILE, [])
+            news.append({"titulo": titulo, "fecha": fecha, "plataforma": plataforma, "detalle": detalle})
+            save_json(NEWS_FILE, news)
+            st.success("Noticia agregada. Recarga la página para ver los cambios.")
+
+    with st.expander("🏷️ Áreas y videos (JSON)"):
+        current = json.dumps(AREAS, ensure_ascii=False, indent=2)
+        edited = st.text_area("Edita el JSON de áreas → videos", value=current, height=300)
+        if st.button("Guardar áreas"):
+            try:
+                new_data = json.loads(edited)
+                save_json(AREAS_FILE, new_data)
+                st.success("Áreas actualizadas. Recarga la página para aplicar cambios.")
+            except Exception as e:
+                st.error(f"JSON inválido: {e}")
+
+# ------------------ Router ------------------
+if " _go_to" in st.session_state:
+    # internal redirect after registro
+    mode = st.session_state.pop("_go_to")
+
+if mode == "Inicio":
+    page_inicio()
+elif mode == "Registro":
+    page_registro()
+elif mode == "Capacitaciones":
+    page_capacitaciones()
+elif mode == "Noticias":
+    page_noticias()
+elif mode == "Admin":
+    page_admin()
