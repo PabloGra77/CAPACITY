@@ -95,17 +95,21 @@ if st.session_state.user:
 mode = st.sidebar.radio("Navegación", ["Inicio", "Registro", "Capacitaciones", "Noticias", "Admin"], index=0)
 
 # ------------------ Data ------------------
+# Asegurar que el directorio data existe
+os.makedirs(DATA_DIR, exist_ok=True)
+
 AREAS = load_json(AREAS_FILE, {})
 NEWS = load_json(NEWS_FILE, [])
 
-# Inicializar áreas de ejemplo
+# Inicializar áreas de ejemplo si no existen
 if not AREAS:
-    AREAS = {
+    default_areas = {
         "Recursos Humanos": ["https://www.youtube.com/watch?v=dQw4w9WgXcQ"],
         "Ventas": ["https://www.youtube.com/watch?v=dQw4w9WgXcQ"],
         "Tecnología": ["https://www.youtube.com/watch?v=dQw4w9WgXcQ"]
     }
-    save_json(AREAS_FILE, AREAS)
+    save_json(AREAS_FILE, default_areas)
+    AREAS = default_areas
 
 # ------------------ Pages ------------------
 def page_inicio():
