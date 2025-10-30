@@ -6,169 +6,175 @@ import streamlit as st
 ADMIN_PIN = "goleman123"
 
 st.set_page_config(
-    page_title="GIA CAPACITY", 
-    page_icon="⚡", 
+    page_title="GIA TRAINING", 
+    page_icon="🎓", 
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# CSS Cyberpunk
+# CSS Cyberpunk Corporativo
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@700;900&display=swap');
     
     * {
-        font-family: 'Orbitron', sans-serif;
+        font-family: 'Rajdhani', sans-serif;
     }
     
     .stApp {
-        background: linear-gradient(135deg, #0a0e27 0%, #1a1a2e 50%, #16213e 100%);
-        color: #00ffff;
+        background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 50%, #232d3f 100%);
+        color: #e0e0e0;
     }
     
     .main-header {
-        font-size: 4rem;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 3.5rem;
         font-weight: 900;
         text-align: center;
-        background: linear-gradient(90deg, #00ffff 0%, #ff00ff 50%, #00ffff 100%);
+        background: linear-gradient(90deg, #00d4ff 0%, #0066ff 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        text-shadow: 0 0 30px rgba(0,255,255,0.5);
-        margin: 2rem 0;
-        animation: glow 2s ease-in-out infinite alternate;
-    }
-    
-    @keyframes glow {
-        from { filter: drop-shadow(0 0 5px #00ffff); }
-        to { filter: drop-shadow(0 0 20px #ff00ff); }
+        text-shadow: 0 0 20px rgba(0,212,255,0.3);
+        margin: 1.5rem 0;
+        letter-spacing: 8px;
     }
     
     .cyber-card {
-        background: rgba(26, 26, 46, 0.8);
-        border: 2px solid #00ffff;
-        border-radius: 15px;
+        background: linear-gradient(145deg, rgba(26,31,46,0.95), rgba(35,45,63,0.95));
+        border-left: 4px solid #00d4ff;
+        border-radius: 12px;
         padding: 2rem;
         margin: 1rem 0;
-        box-shadow: 0 0 20px rgba(0,255,255,0.3), inset 0 0 20px rgba(0,255,255,0.1);
-        position: relative;
-        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,212,255,0.1);
+        backdrop-filter: blur(10px);
     }
     
-    .cyber-card::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: linear-gradient(45deg, transparent, rgba(0,255,255,0.1), transparent);
-        animation: scan 3s linear infinite;
-    }
-    
-    @keyframes scan {
-        0% { transform: translateY(-100%); }
-        100% { transform: translateY(100%); }
+    .cyber-card:hover {
+        border-left-color: #0066ff;
+        box-shadow: 0 8px 32px rgba(0,102,255,0.2), 0 0 0 1px rgba(0,212,255,0.2);
+        transition: all 0.3s ease;
     }
     
     .timer-display {
-        font-size: 5rem;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 4rem;
         font-weight: 900;
         text-align: center;
-        color: #00ffff;
-        text-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff;
+        color: #00d4ff;
+        text-shadow: 0 0 20px rgba(0,212,255,0.5);
         padding: 2rem;
-        background: rgba(0,0,0,0.5);
-        border: 3px solid #00ffff;
-        border-radius: 20px;
+        background: rgba(0,0,0,0.6);
+        border: 2px solid #00d4ff;
+        border-radius: 16px;
         margin: 1rem 0;
-        animation: pulse 2s ease-in-out infinite;
-    }
-    
-    @keyframes pulse {
-        0%, 100% { box-shadow: 0 0 10px #00ffff; }
-        50% { box-shadow: 0 0 30px #00ffff, 0 0 50px #ff00ff; }
+        box-shadow: inset 0 0 20px rgba(0,212,255,0.1);
     }
     
     .stButton>button {
-        background: linear-gradient(90deg, #00ffff 0%, #ff00ff 100%);
-        color: #0a0e27;
+        background: linear-gradient(135deg, #00d4ff 0%, #0066ff 100%);
+        color: #ffffff;
         border: none;
-        border-radius: 10px;
-        font-weight: 900;
-        padding: 1rem 2rem;
-        font-size: 1.2rem;
+        border-radius: 8px;
+        font-weight: 700;
+        padding: 0.8rem 2rem;
+        font-size: 1rem;
         text-transform: uppercase;
-        letter-spacing: 2px;
-        box-shadow: 0 0 20px rgba(0,255,255,0.5);
-        transition: all 0.3s;
+        letter-spacing: 1.5px;
+        box-shadow: 0 4px 15px rgba(0,102,255,0.3);
+        transition: all 0.3s ease;
     }
     
     .stButton>button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 5px 30px rgba(0,255,255,0.8), 0 5px 30px rgba(255,0,255,0.5);
+        background: linear-gradient(135deg, #0066ff 0%, #0044cc 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,102,255,0.5);
     }
     
     .stTextInput>div>div>input, .stSelectbox>div>div>select, .stTextArea>div>div>textarea {
-        background: rgba(0,0,0,0.5);
-        border: 2px solid #00ffff;
-        color: #00ffff;
-        border-radius: 10px;
-        font-family: 'Orbitron', sans-serif;
+        background: rgba(15,20,25,0.8);
+        border: 2px solid rgba(0,212,255,0.3);
+        color: #e0e0e0;
+        border-radius: 8px;
+        font-family: 'Rajdhani', sans-serif;
+        font-size: 1rem;
     }
     
     .stTextInput>div>div>input:focus, .stSelectbox>div>div>select:focus, .stTextArea>div>div>textarea:focus {
-        border-color: #ff00ff;
-        box-shadow: 0 0 15px rgba(255,0,255,0.5);
+        border-color: #00d4ff;
+        box-shadow: 0 0 10px rgba(0,212,255,0.3);
     }
     
     .cyber-metric {
-        background: rgba(0,0,0,0.7);
-        border: 2px solid #00ffff;
-        border-radius: 15px;
+        background: linear-gradient(145deg, rgba(0,0,0,0.6), rgba(26,31,46,0.8));
+        border: 2px solid rgba(0,212,255,0.4);
+        border-radius: 12px;
         padding: 1.5rem;
         text-align: center;
-        box-shadow: 0 0 15px rgba(0,255,255,0.3);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
     
     .cyber-metric h3 {
-        color: #ff00ff;
-        font-size: 3rem;
+        color: #00d4ff;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 2.5rem;
         margin: 0;
-        text-shadow: 0 0 10px #ff00ff;
+        font-weight: 900;
     }
     
     .cyber-metric p {
-        color: #00ffff;
-        font-size: 1rem;
-        margin: 0;
+        color: #a0a0a0;
+        font-size: 0.9rem;
+        margin: 0.5rem 0 0 0;
+        text-transform: uppercase;
+        letter-spacing: 2px;
     }
     
     .sidebar .sidebar-content {
-        background: rgba(10,14,39,0.95);
-        border-right: 2px solid #00ffff;
+        background: linear-gradient(180deg, rgba(15,20,25,0.98), rgba(26,31,46,0.98));
+        border-right: 1px solid rgba(0,212,255,0.2);
     }
     
     h1, h2, h3 {
-        color: #00ffff;
-        text-shadow: 0 0 10px rgba(0,255,255,0.5);
+        color: #00d4ff;
+        font-weight: 700;
     }
     
     .stExpander {
-        background: rgba(26,26,46,0.5);
-        border: 1px solid #00ffff;
-        border-radius: 10px;
+        background: rgba(26,31,46,0.6);
+        border: 1px solid rgba(0,212,255,0.2);
+        border-radius: 8px;
     }
     
     .stDataFrame {
-        background: rgba(0,0,0,0.5);
-        border: 2px solid #00ffff;
-        border-radius: 10px;
+        background: rgba(0,0,0,0.4);
+        border: 1px solid rgba(0,212,255,0.2);
+        border-radius: 8px;
+    }
+    
+    .stInfo {
+        background: rgba(0,212,255,0.1);
+        border-left: 4px solid #00d4ff;
+    }
+    
+    .stSuccess {
+        background: rgba(0,200,100,0.1);
+        border-left: 4px solid #00c864;
+    }
+    
+    .stWarning {
+        background: rgba(255,193,7,0.1);
+        border-left: 4px solid #ffc107;
+    }
+    
+    .stError {
+        background: rgba(255,67,54,0.1);
+        border-left: 4px solid #ff4336;
     }
 </style>
 """, unsafe_allow_html=True)
 
 # ------------------ Database Setup ------------------
-DB_FILE = "gia_capacity.db"
+DB_FILE = "gia_training.db"
 
 def init_database():
     conn = sqlite3.connect(DB_FILE)
@@ -326,7 +332,7 @@ if "redirect_to" not in st.session_state:
 
 # ------------------ Sidebar ------------------
 with st.sidebar:
-    st.markdown("### ⚡ GIA CAPACITY")
+    st.markdown("### 🎓 GIA TRAINING")
     
     if st.session_state.user:
         st.success(f"👤 **{st.session_state.user.get('nombres', '')}**")
@@ -355,12 +361,12 @@ if st.session_state.redirect_to:
 
 # ------------------ Pages ------------------
 def page_inicio():
-    st.markdown('<h1 class="main-header">⚡ GIA CAPACITY ⚡</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">GIA TRAINING</h1>', unsafe_allow_html=True)
     
     st.markdown("""
     <div class="cyber-card">
-    <h2 style="text-align: center; color: #ff00ff;">🚀 SISTEMA DE CAPACITACIÓN AVANZADO</h2>
-    <p style="text-align: center; font-size: 1.2rem;">Plataforma de entrenamiento con registro automático de tiempo</p>
+    <h2 style="text-align: center; color: #00d4ff;">PLATAFORMA DE CAPACITACIÓN EMPRESARIAL</h2>
+    <p style="text-align: center; font-size: 1.1rem; color: #a0a0a0;">Sistema inteligente de gestión y registro de capacitaciones</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -369,13 +375,13 @@ def page_inicio():
     with col1:
         st.markdown("""
         <div class="cyber-card">
-        <h3 style="color: #00ffff;">📋 PROTOCOLO DE CAPACITACIÓN</h3>
-        <ol style="font-size: 1.1rem; line-height: 2rem;">
-            <li><strong style="color: #ff00ff;">Regístrate</strong> con tus datos personales</li>
-            <li><strong style="color: #ff00ff;">Selecciona tu área</strong> de capacitación</li>
-            <li><strong style="color: #ff00ff;">El cronómetro inicia automáticamente</strong> al entrar</li>
-            <li><strong style="color: #ff00ff;">Capacítate</strong> con los videos de tu área</li>
-            <li><strong style="color: #ff00ff;">Finaliza</strong> cuando termines - el tiempo se guarda automáticamente</li>
+        <h3 style="color: #00d4ff;">📋 PROCESO DE CAPACITACIÓN</h3>
+        <ol style="font-size: 1.05rem; line-height: 1.8rem; color: #e0e0e0;">
+            <li><strong style="color: #00d4ff;">Registro:</strong> Completa tus datos personales en el sistema</li>
+            <li><strong style="color: #00d4ff;">Selección:</strong> Elige el área de capacitación correspondiente</li>
+            <li><strong style="color: #00d4ff;">Cronómetro:</strong> El tiempo inicia automáticamente al acceder</li>
+            <li><strong style="color: #00d4ff;">Capacitación:</strong> Revisa todo el material de tu área</li>
+            <li><strong style="color: #00d4ff;">Finalización:</strong> Completa y guarda tu progreso automáticamente</li>
         </ol>
         </div>
         """, unsafe_allow_html=True)
@@ -394,7 +400,7 @@ def page_inicio():
 
     if NEWS:
         st.divider()
-        st.markdown("### 📡 TRANSMISIONES RECIENTES")
+        st.markdown("### 📢 ANUNCIOS Y EVENTOS")
         for n in NEWS[:3]:
             with st.expander(f"🗓️ {n.get('titulo','Sin título')}", expanded=False):
                 st.write(f"**📅 Fecha:** {n.get('fecha','')}")
@@ -571,10 +577,10 @@ def page_capacitaciones():
                 st.rerun()
 
 def page_noticias():
-    st.markdown('<h1 class="main-header">📡 TRANSMISIONES</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">NOTICIAS</h1>', unsafe_allow_html=True)
     
     if not NEWS:
-        st.info("📭 NO HAY TRANSMISIONES ACTIVAS")
+        st.info("📭 NO HAY ANUNCIOS DISPONIBLES")
         return
     
     for idx, n in enumerate(NEWS):
@@ -602,7 +608,7 @@ def page_admin():
     st.success("✅ ACCESO DE ADMINISTRADOR AUTORIZADO")
     st.divider()
 
-    tab1, tab2, tab3 = st.tabs(["📊 BASE DE DATOS", "📢 TRANSMISIONES", "⚙️ CONFIGURACIÓN"])
+    tab1, tab2, tab3 = st.tabs(["📊 REGISTROS", "📢 ANUNCIOS", "⚙️ CONFIGURACIÓN"])
 
     with tab1:
         st.markdown("### 📊 REGISTROS DEL SISTEMA")
@@ -647,9 +653,9 @@ def page_admin():
             
             csv = df.to_csv(index=False).encode("utf-8")
             st.download_button(
-                "📥 DESCARGAR BASE DE DATOS", 
+                "📥 EXPORTAR REGISTROS", 
                 csv, 
-                file_name=f"gia_capacity_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", 
+                file_name=f"gia_training_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", 
                 mime="text/csv",
                 type="primary",
                 use_container_width=True
@@ -658,7 +664,7 @@ def page_admin():
             st.info("📭 BASE DE DATOS VACÍA")
 
     with tab2:
-        st.markdown("### ➕ NUEVA TRANSMISIÓN")
+        st.markdown("### ➕ PUBLICAR ANUNCIO")
         
         with st.form("news_form"):
             col1, col2 = st.columns(2)
@@ -676,13 +682,13 @@ def page_admin():
                     news = get_news()
                     news.append({"titulo": titulo, "fecha": fecha, "plataforma": plataforma, "detalle": detalle})
                     save_news(news)
-                    st.success("✅ TRANSMISIÓN PUBLICADA")
+                    st.success("✅ ANUNCIO PUBLICADO")
                     st.rerun()
                 else:
                     st.error("⚠️ CAMPOS OBLIGATORIOS INCOMPLETOS")
         
         st.divider()
-        st.markdown("### 📰 TRANSMISIONES ACTIVAS")
+        st.markdown("### 📰 ANUNCIOS PUBLICADOS")
         
         news_list = get_news()
         if news_list:
@@ -693,10 +699,10 @@ def page_admin():
                     st.write(f"**Detalle:** {n.get('detalle', 'N/A')}")
                     if st.button(f"🗑️ ELIMINAR", key=f"del_{idx}"):
                         delete_noticia(idx)
-                        st.success("Transmisión eliminada")
+                        st.success("Anuncio eliminado")
                         st.rerun()
         else:
-            st.info("📭 NO HAY TRANSMISIONES")
+            st.info("📭 NO HAY ANUNCIOS")
 
     with tab3:
         st.markdown("### ⚙️ CONFIGURACIÓN DE ÁREAS")
