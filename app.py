@@ -151,7 +151,54 @@ st.markdown("""
     
     .sidebar .sidebar-content {
         background: linear-gradient(180deg, rgba(15,20,25,0.98), rgba(26,31,46,0.98));
-        border-right: 1px solid rgba(0,212,255,0.2);
+        border-right: 2px solid rgba(0,212,255,0.4);
+        box-shadow: 5px 0 30px rgba(0,212,255,0.2);
+    }
+    
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0f1419 0%, #1a1f2e 100%);
+    }
+    
+    [data-testid="stSidebar"] > div:first-child {
+        background: linear-gradient(180deg, rgba(15,20,25,0.98), rgba(26,31,46,0.98));
+    }
+    
+    [data-testid="stSidebar"] h3 {
+        color: #00d4ff;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 1.5rem;
+        text-align: center;
+        text-shadow: 0 0 15px rgba(0,212,255,0.6);
+        padding: 1rem;
+        background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(0,102,255,0.1));
+        border-radius: 10px;
+        border: 2px solid rgba(0,212,255,0.3);
+        margin-bottom: 1rem;
+    }
+    
+    [data-testid="stSidebar"] .stSuccess {
+        background: linear-gradient(135deg, rgba(0,200,100,0.15), rgba(0,150,80,0.15));
+        border-left: 4px solid #00c864;
+        border-radius: 8px;
+        padding: 1rem;
+        color: #ffffff;
+        font-weight: 700;
+        backdrop-filter: blur(10px);
+    }
+    
+    [data-testid="stSidebar"] .stInfo {
+        background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(0,102,255,0.15));
+        border-left: 4px solid #00d4ff;
+        border-radius: 8px;
+        padding: 1rem;
+        color: #ffffff;
+        font-weight: 600;
+        backdrop-filter: blur(10px);
+    }
+    
+    [data-testid="stSidebar"] hr {
+        border-color: rgba(0,212,255,0.3);
+        box-shadow: 0 0 10px rgba(0,212,255,0.2);
     }
     
     h1, h2, h3 {
