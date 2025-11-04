@@ -506,16 +506,23 @@ with st.sidebar:
     ">📋 NAVEGACIÓN</p>
     """, unsafe_allow_html=True)
     
+    # Determinar índice según redirección
+    default_index = 0
+    if st.session_state.redirect_to:
+        opciones = ["Inicio", "Registro", "Capacitaciones", "Noticias", "Admin"]
+        if st.session_state.redirect_to in opciones:
+            default_index = opciones.index(st.session_state.redirect_to)
+    
     mode = st.radio(
         "nav",
         ["Inicio", "Registro", "Capacitaciones", "Noticias", "Admin"],
-        index=0,
-        label_visibility="collapsed"
+        index=default_index,
+        label_visibility="collapsed",
+        key="nav_radio"
     )
 
-# Manejar redirección
+# Limpiar redirección después de usar
 if st.session_state.redirect_to:
-    mode = st.session_state.redirect_to
     st.session_state.redirect_to = None
 
 # ------------------ Pages ------------------
