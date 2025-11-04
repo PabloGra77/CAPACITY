@@ -100,7 +100,7 @@ st.markdown("""
         font-weight: 600;
     }
     
-    .stTextInput>div>div>input::placeholder, .stSelectbox>div>div>select::placeholder, .stTextArea>div>div>textarea::placeholder {
+    .stTextInput>div>div>input::placeholder {
         color: rgba(255,255,255,0.4) !important;
     }
     
@@ -124,31 +124,6 @@ st.markdown("""
         color: #ffffff !important;
     }
     
-    .cyber-metric {
-        background: linear-gradient(145deg, rgba(0,0,0,0.6), rgba(26,31,46,0.8));
-        border: 2px solid rgba(0,212,255,0.4);
-        border-radius: 12px;
-        padding: 1.5rem;
-        text-align: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    }
-    
-    .cyber-metric h3 {
-        color: #00d4ff;
-        font-family: 'Orbitron', sans-serif;
-        font-size: 2.5rem;
-        margin: 0;
-        font-weight: 900;
-    }
-    
-    .cyber-metric p {
-        color: #a0a0a0;
-        font-size: 0.9rem;
-        margin: 0.5rem 0 0 0;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-    }
-    
     .sidebar .sidebar-content {
         background: linear-gradient(180deg, rgba(15,20,25,0.98), rgba(26,31,46,0.98));
         border-right: 2px solid rgba(0,212,255,0.4);
@@ -163,47 +138,54 @@ st.markdown("""
         background: linear-gradient(180deg, rgba(15,20,25,0.98), rgba(26,31,46,0.98));
     }
     
-    [data-testid="stSidebar"] h3 {
-        color: #00d4ff;
-        font-family: 'Orbitron', sans-serif;
-        font-size: 1.5rem;
-        text-align: center;
-        text-shadow: 0 0 15px rgba(0,212,255,0.6);
-        padding: 1rem;
-        background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(0,102,255,0.1));
-        border-radius: 10px;
-        border: 2px solid rgba(0,212,255,0.3);
-        margin-bottom: 1rem;
-    }
-    
-    [data-testid="stSidebar"] .stSuccess {
-        background: linear-gradient(135deg, rgba(0,200,100,0.15), rgba(0,150,80,0.15));
-        border-left: 4px solid #00c864;
-        border-radius: 8px;
-        padding: 1rem;
-        color: #ffffff;
-        font-weight: 700;
-        backdrop-filter: blur(10px);
-    }
-    
-    [data-testid="stSidebar"] .stInfo {
-        background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(0,102,255,0.15));
-        border-left: 4px solid #00d4ff;
-        border-radius: 8px;
-        padding: 1rem;
-        color: #ffffff;
-        font-weight: 600;
-        backdrop-filter: blur(10px);
-    }
-    
-    [data-testid="stSidebar"] hr {
-        border-color: rgba(0,212,255,0.3);
-        box-shadow: 0 0 10px rgba(0,212,255,0.2);
-    }
-    
     h1, h2, h3 {
         color: #00d4ff;
         font-weight: 700;
+    }
+    
+    .stRadio > label {
+        color: #00d4ff !important;
+        font-weight: 700 !important;
+        font-size: 1.1rem !important;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 1rem;
+    }
+    
+    .stRadio > div {
+        background: linear-gradient(145deg, rgba(15,20,25,0.8), rgba(26,31,46,0.6));
+        border: 2px solid rgba(0,212,255,0.4);
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: inset 0 0 20px rgba(0,0,0,0.3), 0 0 15px rgba(0,212,255,0.1);
+    }
+    
+    .stRadio [role="radiogroup"] label {
+        color: #a0a0a0 !important;
+        padding: 0.8rem 1.2rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        margin: 0.3rem 0;
+        display: block;
+        border-left: 3px solid transparent;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+    
+    .stRadio [role="radiogroup"] label:hover {
+        background: linear-gradient(90deg, rgba(0,212,255,0.15), transparent);
+        color: #00d4ff !important;
+        border-left-color: #00d4ff;
+        transform: translateX(5px);
+        box-shadow: 0 0 15px rgba(0,212,255,0.2);
+    }
+    
+    .stForm {
+        background: linear-gradient(145deg, rgba(26,31,46,0.95), rgba(35,45,63,0.95));
+        border: 2px solid rgba(0,212,255,0.3);
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
     }
     
     .stExpander {
@@ -218,119 +200,8 @@ st.markdown("""
         border-radius: 8px;
     }
     
-    .stInfo {
-        background: rgba(0,212,255,0.1);
-        border-left: 4px solid #00d4ff;
-    }
-    
-    .stSuccess {
-        background: rgba(0,200,100,0.1);
-        border-left: 4px solid #00c864;
-    }
-    
-    .stWarning {
-        background: rgba(255,193,7,0.1);
-        border-left: 4px solid #ffc107;
-    }
-    
-    .stError {
-        background: rgba(255,67,54,0.1);
-        border-left: 4px solid #ff4336;
-    }
-    
-    .stMetric {
-        background: linear-gradient(145deg, rgba(0,0,0,0.6), rgba(26,31,46,0.8));
-        border: 2px solid rgba(0,212,255,0.4);
-        border-radius: 12px;
-        padding: 1rem;
-    }
-    
-    .stMetric label {
-        color: #a0a0a0 !important;
-        font-size: 0.9rem !important;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-    }
-    
-    .stMetric [data-testid="stMetricValue"] {
-        color: #00d4ff !important;
-        font-family: 'Orbitron', sans-serif;
-        font-size: 2rem !important;
-        font-weight: 900 !important;
-    }
-    
-    .stRadio > label {
-        color: #00d4ff !important;
-        font-weight: 700 !important;
-        font-size: 1.1rem !important;
-    }
-    
-    .stRadio > div {
-        background: rgba(15,20,25,0.6);
-        border: 1px solid rgba(0,212,255,0.3);
-        border-radius: 8px;
-        padding: 0.5rem;
-    }
-    
-    .stRadio [role="radiogroup"] label {
-        color: #e0e0e0 !important;
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        transition: all 0.3s;
-    }
-    
-    .stRadio [role="radiogroup"] label:hover {
-        background: rgba(0,212,255,0.1);
-        color: #00d4ff !important;
-    }
-    
-    .stForm {
-        background: linear-gradient(145deg, rgba(26,31,46,0.95), rgba(35,45,63,0.95));
-        border: 2px solid rgba(0,212,255,0.3);
-        border-radius: 12px;
-        padding: 2rem;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-    }
-    
-    .stMarkdown {
-        color: #e0e0e0 !important;
-    }
-    
-    p, span, div {
-        color: #e0e0e0;
-    }
-    
-    .stExpander [data-testid="stExpanderDetails"] {
-        background: rgba(15,20,25,0.8);
-        border: 1px solid rgba(0,212,255,0.2);
-        border-radius: 8px;
-        padding: 1rem;
-    }
-    
-    .stTabs [data-baseweb="tab-list"] {
-        background: rgba(15,20,25,0.8);
-        border-radius: 8px;
-        padding: 0.5rem;
-    }
-    
-    .stTabs [data-baseweb="tab"] {
-        color: #a0a0a0 !important;
-        border-radius: 6px;
-        font-weight: 700;
-    }
-    
-    .stTabs [aria-selected="true"] {
-        color: #00d4ff !important;
-        background: rgba(0,212,255,0.1);
-        border-bottom: 2px solid #00d4ff !important;
-    }
-    
     .stDownloadButton > button {
         background: linear-gradient(135deg, #00c864 0%, #00a854 100%) !important;
-    }
-    
-    .stDownloadButton > button:hover {
-        background: linear-gradient(135deg, #00a854 0%, #008844 100%) !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -492,29 +363,113 @@ if "user" not in st.session_state:
 if "redirect_to" not in st.session_state:
     st.session_state.redirect_to = None
 
-# ------------------ Sidebar ------------------
-with st.sidebar:
-    st.markdown("### 🎓 GIA TRAINING")
-    
-    if st.session_state.user:
-        st.success(f"👤 **{st.session_state.user.get('nombres', '')}**")
-        st.info(f"📍 {st.session_state.user.get('area', '')}")
-        
-        if st.session_state.timer_start:
-            elapsed = int(time.time() - st.session_state.timer_start)
-            st.markdown(f"### ⏱️ {seconds_to_hms(elapsed)}")
-        
-        st.divider()
-    
-    mode = st.radio(
-        "📋 NAVEGACIÓN", 
-        ["Inicio", "Registro", "Capacitaciones", "Noticias", "Admin"],
-        index=0
-    )
-
 # ------------------ Data ------------------
 AREAS = get_areas()
 NEWS = get_news()
+
+# ------------------ Sidebar ------------------
+with st.sidebar:
+    st.markdown("""
+    <div style="text-align: center; padding: 1.5rem 0; margin-bottom: 1rem;">
+        <h1 style="
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(90deg, #00d4ff 0%, #0066ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 3px;
+            margin: 0;
+        ">🎓 GIA TRAINING</h1>
+        <div style="
+            width: 80%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00d4ff, transparent);
+            margin: 1rem auto;
+            box-shadow: 0 0 10px rgba(0,212,255,0.5);
+        "></div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    if st.session_state.user:
+        st.markdown(f"""
+        <div style="
+            background: linear-gradient(135deg, rgba(0,200,100,0.15), rgba(0,150,80,0.15));
+            border-left: 4px solid #00c864;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            backdrop-filter: blur(10px);
+        ">
+            <p style="color: #00c864; font-size: 0.8rem; margin: 0; text-transform: uppercase; letter-spacing: 1px;">✓ SESIÓN ACTIVA</p>
+            <h3 style="color: #ffffff; font-size: 1.1rem; margin: 0.5rem 0; font-weight: 700;">{st.session_state.user.get('nombres', '')}</h3>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown(f"""
+        <div style="
+            background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(0,102,255,0.15));
+            border-left: 4px solid #00d4ff;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            backdrop-filter: blur(10px);
+        ">
+            <p style="color: #00d4ff; font-size: 0.8rem; margin: 0; text-transform: uppercase; letter-spacing: 1px;">ÁREA</p>
+            <h3 style="color: #ffffff; font-size: 1.1rem; margin: 0.5rem 0; font-weight: 700;">{st.session_state.user.get('area', '')}</h3>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        if st.session_state.timer_start:
+            elapsed = int(time.time() - st.session_state.timer_start)
+            st.markdown(f"""
+            <div style="
+                background: rgba(0,0,0,0.6);
+                border: 2px solid #00d4ff;
+                border-radius: 10px;
+                padding: 1.5rem;
+                margin-bottom: 1rem;
+                text-align: center;
+                box-shadow: 0 0 20px rgba(0,212,255,0.3);
+            ">
+                <p style="color: #a0a0a0; font-size: 0.8rem; margin: 0; text-transform: uppercase; letter-spacing: 2px;">TIEMPO</p>
+                <h2 style="
+                    font-family: 'Orbitron', sans-serif;
+                    color: #00d4ff;
+                    font-size: 2rem;
+                    margin: 0.5rem 0 0 0;
+                    font-weight: 900;
+                    text-shadow: 0 0 15px rgba(0,212,255,0.6);
+                ">{seconds_to_hms(elapsed)}</h2>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div style="
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(0,212,255,0.5), transparent);
+            margin: 1.5rem 0;
+        "></div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("""
+    <p style="
+        color: #00d4ff;
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 1rem;
+    ">📋 NAVEGACIÓN</p>
+    """, unsafe_allow_html=True)
+    
+    mode = st.radio(
+        "nav",
+        ["Inicio", "Registro", "Capacitaciones", "Noticias", "Admin"],
+        index=0,
+        label_visibility="collapsed"
+    )
 
 # Manejar redirección
 if st.session_state.redirect_to:
@@ -554,9 +509,21 @@ def page_inicio():
     
     with col2:
         st.markdown(f"""
-        <div class="cyber-metric">
-            <h3>{len(AREAS)}</h3>
-            <p>ÁREAS ACTIVAS</p>
+        <div style="
+            background: linear-gradient(145deg, rgba(0,0,0,0.6), rgba(26,31,46,0.8));
+            border: 2px solid rgba(0,212,255,0.4);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+        ">
+            <h3 style="
+                color: #00d4ff;
+                font-family: 'Orbitron', sans-serif;
+                font-size: 3rem;
+                margin: 0;
+                font-weight: 900;
+            ">{len(AREAS)}</h3>
+            <p style="color: #a0a0a0; font-size: 0.9rem; margin: 0.5rem 0 0 0; text-transform: uppercase; letter-spacing: 2px;">ÁREAS ACTIVAS</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -571,22 +538,38 @@ def page_inicio():
                     st.write(n.get("detalle",""))
 
 def page_registro():
-    st.markdown('<h1 class="main-header">📝 REGISTRO DE ACCESO</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">REGISTRO DE ACCESO</h1>', unsafe_allow_html=True)
     
     if st.session_state.user:
         st.success("✅ ACCESO AUTORIZADO")
         
         st.markdown("""
         <div class="cyber-card">
+        <h3 style="color: #00d4ff; margin-bottom: 1.5rem;">INFORMACIÓN DEL USUARIO</h3>
         """, unsafe_allow_html=True)
         
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("USUARIO", f"{st.session_state.user.get('nombres')} {st.session_state.user.get('apellidos')}")
+            st.markdown(f"""
+            <div style="text-align: center;">
+                <p style="color: #a0a0a0; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 0.5rem;">USUARIO</p>
+                <p style="color: #00d4ff; font-size: 1.3rem; font-weight: 700;">{st.session_state.user.get('nombres')} {st.session_state.user.get('apellidos')}</p>
+            </div>
+            """, unsafe_allow_html=True)
         with col2:
-            st.metric("ID", st.session_state.user.get('cedula'))
+            st.markdown(f"""
+            <div style="text-align: center;">
+                <p style="color: #a0a0a0; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 0.5rem;">CÉDULA</p>
+                <p style="color: #00d4ff; font-size: 1.3rem; font-weight: 700;">{st.session_state.user.get('cedula')}</p>
+            </div>
+            """, unsafe_allow_html=True)
         with col3:
-            st.metric("SECTOR", st.session_state.user.get('area'))
+            st.markdown(f"""
+            <div style="text-align: center;">
+                <p style="color: #a0a0a0; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 0.5rem;">ÁREA</p>
+                <p style="color: #00d4ff; font-size: 1.3rem; font-weight: 700;">{st.session_state.user.get('area')}</p>
+            </div>
+            """, unsafe_allow_html=True)
         
         st.markdown("</div>", unsafe_allow_html=True)
         
@@ -614,20 +597,24 @@ def page_registro():
                 st.rerun()
         return
     
-    st.info("💡 Ingresa tus credenciales para acceder al sistema")
+    st.markdown("""
+    <div class="cyber-card">
+    <p style="text-align: center; font-size: 1.1rem; color: #00d4ff;">💡 Ingresa tus credenciales para acceder al sistema</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     with st.form("registro_form", clear_on_submit=False):
         col1, col2 = st.columns(2)
         
         with col1:
-            nombres = st.text_input("👤 NOMBRES *", placeholder="Nombre completo")
-            cedula = st.text_input("🆔 CÉDULA *", placeholder="Número de identificación")
+            nombres = st.text_input("👤 NOMBRES *", placeholder="Ej: Juan Carlos")
+            cedula = st.text_input("🆔 CÉDULA *", placeholder="Ej: 1234567890")
             area_options = list(AREAS.keys())
             area = st.selectbox("📍 ÁREA *", options=area_options)
         
         with col2:
-            apellidos = st.text_input("👤 APELLIDOS *", placeholder="Apellidos")
-            correo = st.text_input("📧 CORREO *", placeholder="email@empresa.com")
+            apellidos = st.text_input("👤 APELLIDOS *", placeholder="Ej: Pérez García")
+            correo = st.text_input("📧 CORREO *", placeholder="Ej: usuario@empresa.com")
         
         submitted = st.form_submit_button("⚡ INICIAR SESIÓN", type="primary", use_container_width=True)
         
@@ -688,247 +675,3 @@ def page_capacitaciones():
     with col1:
         st.markdown(f"""
         <div>
-            <h3 style="color: #00d4ff; margin: 0;">📍 {area}</h3>
-            <p style="color: #a0a0a0; margin: 0.5rem 0 0 0;">👤 {st.session_state.user.get('nombres')} {st.session_state.user.get('apellidos')}</p>
-        </div>
-        """, unsafe_allow_html=True)
-    with col2:
-        st.markdown(f'<div class="timer-display">{seconds_to_hms(elapsed)}</div>', unsafe_allow_html=True)
-    with col3:
-        if st.button("🔄 SYNC", help="Actualizar cronómetro"):
-            st.rerun()
-    
-    st.markdown("</div>", unsafe_allow_html=True)
-    
-    st.divider()
-    
-    urls = AREAS.get(area, [])
-    
-    if not urls:
-        st.markdown("""
-        <div class="cyber-card">
-        <h3 style="color: #ffc107; text-align: center;">⚠️ NO HAY CONTENIDO DISPONIBLE</h3>
-        <p style="text-align: center; color: #e0e0e0;">Contacta al administrador del sistema para agregar material de capacitación</p>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown('<h3 style="color: #00d4ff;">📚 CONTENIDO DE CAPACITACIÓN</h3>', unsafe_allow_html=True)
-        
-        for i, u in enumerate(urls, start=1):
-            st.markdown(f"""
-            <div class="cyber-card">
-            <h3 style="color: #00d4ff;">⚡ MÓDULO {i}</h3>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            if ("youtube.com" in u.lower()) or ("youtu.be" in u.lower()):
-                st.video(u)
-            elif u.lower().endswith((".mp4",".webm",".mov")):
-                st.video(u)
-            else:
-                st.markdown(f"""
-                <div style="padding: 1rem; background: rgba(0,212,255,0.1); border-radius: 8px; border: 1px solid rgba(0,212,255,0.3);">
-                <a href="{u}" target="_blank" style="color: #00d4ff; text-decoration: none; font-weight: 700;">🔗 ACCEDER AL RECURSO EXTERNO</a>
-                <p style="color: #a0a0a0; font-size: 0.9rem; margin-top: 0.5rem;">URL: {u}</p>
-                </div>
-                """, unsafe_allow_html=True)
-    
-    st.divider()
-    
-    st.markdown("""
-    <div class="cyber-card">
-    <h3 style="color: #00d4ff; text-align: center;">✅ FINALIZAR CAPACITACIÓN</h3>
-    <p style="text-align: center; color: #e0e0e0;">El tiempo será guardado automáticamente al completar</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        if st.button("🏁 COMPLETAR CAPACITACIÓN", type="primary", use_container_width=True):
-            if st.session_state.timer_start:
-                final_time = int(time.time() - st.session_state.timer_start)
-                
-                append_registro(
-                    session_id=st.session_state.session_id,
-                    **st.session_state.user,
-                    evento="finalizacion",
-                    duracion_seg=final_time,
-                    observaciones="Capacitación completada exitosamente"
-                )
-                
-                st.session_state.timer_start = None
-                
-                st.success(f"✅ MISIÓN COMPLETADA - TIEMPO TOTAL: **{seconds_to_hms(final_time)}**")
-                st.balloons()
-                time.sleep(2)
-                
-                st.session_state.user = {}
-                st.rerun()
-
-def page_noticias():
-    st.markdown('<h1 class="main-header">NOTICIAS Y ANUNCIOS</h1>', unsafe_allow_html=True)
-    
-    if not NEWS:
-        st.markdown("""
-        <div class="cyber-card">
-        <h3 style="color: #a0a0a0; text-align: center;">📭 NO HAY ANUNCIOS DISPONIBLES</h3>
-        </div>
-        """, unsafe_allow_html=True)
-        return
-    
-    for idx, n in enumerate(NEWS):
-        st.markdown(f"""
-        <div class="cyber-card">
-        <h3 style="color: #00d4ff; border-bottom: 2px solid rgba(0,212,255,0.3); padding-bottom: 0.5rem; margin-bottom: 1rem;">🗓️ {n.get('titulo','Sin título')}</h3>
-        <p style="color: #e0e0e0;"><strong style="color: #00d4ff;">📅 FECHA:</strong> {n.get('fecha','')}</p>
-        <p style="color: #e0e0e0;"><strong style="color: #00d4ff;">💻 PLATAFORMA:</strong> {n.get('plataforma','')}</p>
-        """, unsafe_allow_html=True)
-        
-        if n.get("detalle"):
-            st.markdown(f"<p style='color: #e0e0e0; margin-top: 1rem;'>{n.get('detalle','')}</p>", unsafe_allow_html=True)
-        
-        st.markdown("</div>", unsafe_allow_html=True)
-
-def page_admin():
-    st.markdown('<h1 class="main-header">🔐 PANEL DE CONTROL</h1>', unsafe_allow_html=True)
-    
-    pin = st.text_input("🔑 CÓDIGO DE ACCESO", type="password", placeholder="Ingresa el PIN")
-    
-    if pin != ADMIN_PIN:
-        st.warning("⚠️ ACCESO DENEGADO")
-        return
-
-    st.success("✅ ACCESO DE ADMINISTRADOR AUTORIZADO")
-    st.divider()
-
-    tab1, tab2, tab3 = st.tabs(["📊 REGISTROS", "📢 ANUNCIOS", "⚙️ CONFIGURACIÓN"])
-
-    with tab1:
-        st.markdown("### 📊 REGISTROS DEL SISTEMA")
-        df = get_registros_df()
-        
-        if not df.empty:
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                st.markdown(f"""
-                <div class="cyber-metric">
-                    <h3>{len(df)}</h3>
-                    <p>REGISTROS</p>
-                </div>
-                """, unsafe_allow_html=True)
-            with col2:
-                ingresos = len(df[df['evento'] == 'ingreso'])
-                st.markdown(f"""
-                <div class="cyber-metric">
-                    <h3>{ingresos}</h3>
-                    <p>INGRESOS</p>
-                </div>
-                """, unsafe_allow_html=True)
-            with col3:
-                finalizaciones = len(df[df['evento'] == 'finalizacion'])
-                st.markdown(f"""
-                <div class="cyber-metric">
-                    <h3>{finalizaciones}</h3>
-                    <p>COMPLETADOS</p>
-                </div>
-                """, unsafe_allow_html=True)
-            with col4:
-                usuarios_unicos = df['cedula'].nunique()
-                st.markdown(f"""
-                <div class="cyber-metric">
-                    <h3>{usuarios_unicos}</h3>
-                    <p>USUARIOS</p>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            st.divider()
-            st.dataframe(df, use_container_width=True, height=400)
-            
-            csv = df.to_csv(index=False).encode("utf-8")
-            st.download_button(
-                "📥 EXPORTAR REGISTROS", 
-                csv, 
-                file_name=f"gia_training_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv", 
-                mime="text/csv",
-                type="primary",
-                use_container_width=True
-            )
-        else:
-            st.info("📭 BASE DE DATOS VACÍA")
-
-    with tab2:
-        st.markdown("### ➕ PUBLICAR ANUNCIO")
-        
-        with st.form("news_form"):
-            col1, col2 = st.columns(2)
-            with col1:
-                titulo = st.text_input("📌 TÍTULO *")
-                fecha = st.text_input("📅 FECHA *", value=datetime.now().strftime("%Y-%m-%d %H:%M"))
-            with col2:
-                plataforma = st.text_input("💻 PLATAFORMA *")
-                detalle = st.text_area("📝 DETALLES")
-            
-            submitted = st.form_submit_button("➕ PUBLICAR", type="primary", use_container_width=True)
-            
-            if submitted:
-                if titulo and fecha and plataforma:
-                    news = get_news()
-                    news.append({"titulo": titulo, "fecha": fecha, "plataforma": plataforma, "detalle": detalle})
-                    save_news(news)
-                    st.success("✅ ANUNCIO PUBLICADO")
-                    st.rerun()
-                else:
-                    st.error("⚠️ CAMPOS OBLIGATORIOS INCOMPLETOS")
-        
-        st.divider()
-        st.markdown("### 📰 ANUNCIOS PUBLICADOS")
-        
-        news_list = get_news()
-        if news_list:
-            for idx, n in enumerate(news_list):
-                with st.expander(f"🗓️ {n.get('titulo', 'Sin título')}"):
-                    st.write(f"**Fecha:** {n.get('fecha', '')}")
-                    st.write(f"**Plataforma:** {n.get('plataforma', '')}")
-                    st.write(f"**Detalle:** {n.get('detalle', 'N/A')}")
-                    if st.button(f"🗑️ ELIMINAR", key=f"del_{idx}"):
-                        delete_noticia(idx)
-                        st.success("Anuncio eliminado")
-                        st.rerun()
-        else:
-            st.info("📭 NO HAY ANUNCIOS")
-
-    with tab3:
-        st.markdown("### ⚙️ CONFIGURACIÓN DE ÁREAS")
-        
-        current_areas = get_areas()
-        current = json.dumps(current_areas, ensure_ascii=False, indent=2)
-        
-        st.info("💡 Formato JSON: {\"Área\": [\"url1\", \"url2\"]}")
-        
-        edited = st.text_area("DATOS DE CONFIGURACIÓN", value=current, height=400)
-        
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            if st.button("💾 GUARDAR CAMBIOS", type="primary", use_container_width=True):
-                try:
-                    new_data = json.loads(edited)
-                    save_areas(new_data)
-                    st.success("✅ CONFIGURACIÓN ACTUALIZADA")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"❌ ERROR EN FORMATO: {e}")
-        with col2:
-            if st.button("🔄 RECARGAR", use_container_width=True):
-                st.rerun()
-
-# ------------------ Router ------------------
-if mode == "Inicio":
-    page_inicio()
-elif mode == "Registro":
-    page_registro()
-elif mode == "Capacitaciones":
-    page_capacitaciones()
-elif mode == "Noticias":
-    page_noticias()
-elif mode == "Admin":
-    page_admin()
