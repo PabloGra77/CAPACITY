@@ -392,7 +392,10 @@ with st.sidebar:
     """, unsafe_allow_html=True)
     
     if st.session_state.user:
-        st.markdown(f"""
+        user_nombre = st.session_state.user.get('nombres', '')
+        user_area = st.session_state.user.get('area', '')
+        
+        st.markdown(f'''
         <div style="
             background: linear-gradient(135deg, rgba(0,200,100,0.15), rgba(0,150,80,0.15));
             border-left: 4px solid #00c864;
@@ -402,11 +405,11 @@ with st.sidebar:
             backdrop-filter: blur(10px);
         ">
             <p style="color: #00c864; font-size: 0.8rem; margin: 0; text-transform: uppercase; letter-spacing: 1px;">✓ SESIÓN ACTIVA</p>
-            <h3 style="color: #ffffff; font-size: 1.1rem; margin: 0.5rem 0; font-weight: 700;">{st.session_state.user.get('nombres', '')}</h3>
+            <h3 style="color: #ffffff; font-size: 1.1rem; margin: 0.5rem 0; font-weight: 700;">{user_nombre}</h3>
         </div>
-        """, unsafe_allow_html=True)
+        ''', unsafe_allow_html=True)
         
-        st.markdown(f"""
+        st.markdown(f'''
         <div style="
             background: linear-gradient(135deg, rgba(0,212,255,0.15), rgba(0,102,255,0.15));
             border-left: 4px solid #00d4ff;
@@ -416,13 +419,14 @@ with st.sidebar:
             backdrop-filter: blur(10px);
         ">
             <p style="color: #00d4ff; font-size: 0.8rem; margin: 0; text-transform: uppercase; letter-spacing: 1px;">ÁREA</p>
-            <h3 style="color: #ffffff; font-size: 1.1rem; margin: 0.5rem 0; font-weight: 700;">{st.session_state.user.get('area', '')}</h3>
+            <h3 style="color: #ffffff; font-size: 1.1rem; margin: 0.5rem 0; font-weight: 700;">{user_area}</h3>
         </div>
-        """, unsafe_allow_html=True)
+        ''', unsafe_allow_html=True)
         
         if st.session_state.timer_start:
             elapsed = int(time.time() - st.session_state.timer_start)
-            st.markdown(f"""
+            tiempo_formateado = seconds_to_hms(elapsed)
+            st.markdown(f'''
             <div style="
                 background: rgba(0,0,0,0.6);
                 border: 2px solid #00d4ff;
@@ -440,9 +444,9 @@ with st.sidebar:
                     margin: 0.5rem 0 0 0;
                     font-weight: 900;
                     text-shadow: 0 0 15px rgba(0,212,255,0.6);
-                ">{seconds_to_hms(elapsed)}</h2>
+                ">{tiempo_formateado}</h2>
             </div>
-            """, unsafe_allow_html=True)
+            ''', unsafe_allow_html=True)
         
         st.markdown("""
         <div style="
@@ -675,3 +679,295 @@ def page_capacitaciones():
     with col1:
         st.markdown(f"""
         <div>
+            <h3 style="color: #00d4ff; margin: 0;">📍 {area}</h3>
+            <p style="color: #a0a0a0; margin: 0.5rem 0 0 0;">👤 {st.session_state.user.get('nombres')} {st.session_state.user.get('apellidos')}</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f'<div class="timer-display">{seconds_to_hms(elapsed)}</div>', unsafe_allow_html=True)
+    with col3:
+        if st.button("🔄 SYNC", help="Actualizar cronómetro"):
+            st.rerun()
+    
+    st.markdown("</div>", unsafe_allow_html=True)
+    
+    st.divider()
+    
+    urls = AREAS.get(area, [])
+    
+    if not urls:
+        st.markdown("""
+        <div class="cyber-card">
+        <h3 style="color: #ffc107; text-align: center;">⚠️ NO HAY CONTENIDO DISPONIBLE</h3>
+        <p style="text-align: center; color: #e0e0e0;">Contacta al administrador del sistema para agregar material de capacitación</p>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown('<h3 style="color: #00d4ff;">📚 CONTENIDO DE CAPACITACIÓN</h3>', unsafe_allow_html=True)
+        
+        for i, u in enumerate(urls, start=1):
+            st.markdown(f"""
+            <div class="cyber-card">
+            <h3 style="color: #00d4ff;">⚡ MÓDULO {i}</h3>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            if ("youtube.com" in u.lower()) or ("youtu.be" in u.lower()):
+                st.video(u)
+            elif u.lower().endswith((".mp4",".webm",".mov")):
+                st.video(u)
+            else:
+                st.markdown(f"""
+                <div style="padding: 1rem; background: rgba(0,212,255,0.1); border-radius: 8px; border: 1px solid rgba(0,212,255,0.3);">
+                <a href="{u}" target="_blank" style="color: #00d4ff; text-decoration: none; font-weight: 700;">🔗 ACCEDER AL RECURSO EXTERNO</a>
+                <p style="color: #a0a0a0; font-size: 0.9rem; margin-top: 0.5rem;">URL: {u}</p>
+                </div>
+                """, unsafe_allow_html=True)
+    
+    st.divider()
+    
+    st.markdown("""
+    <div class="cyber-card">
+    <h3 style="color: #00d4ff; text-align: center;">✅ FINALIZAR CAPACITACIÓN</h3>
+    <p style="text-align: center; color: #e0e0e0;">El tiempo será guardado automáticamente al completar</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button("🏁 COMPLETAR CAPACITACIÓN", type="primary", use_container_width=True):
+            if st.session_state.timer_start:
+                final_time = int(time.time() - st.session_state.timer_start)
+                
+                append_registro(
+                    session_id=st.session_state.session_id,
+                    **st.session_state.user,
+                    evento="finalizacion",
+                    duracion_seg=final_time,
+                    observaciones="Capacitación completada exitosamente"
+                )
+                
+                st.session_state.timer_start = None
+                
+                st.success(f"✅ MISIÓN COMPLETADA - TIEMPO TOTAL: **{seconds_to_hms(final_time)}**")
+                st.balloons()
+                time.sleep(2)
+                
+                st.session_state.user = {}
+                st.rerun()
+
+def page_noticias():
+    st.markdown('<h1 class="main-header">NOTICIAS Y ANUNCIOS</h1>', unsafe_allow_html=True)
+    
+    if not NEWS:
+        st.markdown("""
+        <div class="cyber-card">
+        <h3 style="color: #a0a0a0; text-align: center;">📭 NO HAY ANUNCIOS DISPONIBLES</h3>
+        </div>
+        """, unsafe_allow_html=True)
+        return
+    
+    for idx, n in enumerate(NEWS):
+        st.markdown(f"""
+        <div class="cyber-card">
+        <h3 style="color: #00d4ff; border-bottom: 2px solid rgba(0,212,255,0.3); padding-bottom: 0.5rem; margin-bottom: 1rem;">🗓️ {n.get('titulo','Sin título')}</h3>
+        <p style="color: #e0e0e0;"><strong style="color: #00d4ff;">📅 FECHA:</strong> {n.get('fecha','')}</p>
+        <p style="color: #e0e0e0;"><strong style="color: #00d4ff;">💻 PLATAFORMA:</strong> {n.get('plataforma','')}</p>
+        """, unsafe_allow_html=True)
+        
+        if n.get("detalle"):
+            st.markdown(f"<p style='color: #e0e0e0; margin-top: 1rem;'>{n.get('detalle','')}</p>", unsafe_allow_html=True)
+        
+        st.markdown("</div>", unsafe_allow_html=True)
+
+def page_admin():
+    st.markdown('<h1 class="main-header">PANEL DE CONTROL</h1>', unsafe_allow_html=True)
+    
+    pin = st.text_input("🔑 CÓDIGO DE ACCESO", type="password", placeholder="Ingresa el PIN")
+    
+    if pin != ADMIN_PIN:
+        st.warning("⚠️ ACCESO DENEGADO")
+        return
+
+    st.success("✅ ACCESO DE ADMINISTRADOR AUTORIZADO")
+    st.divider()
+
+    tab1, tab2, tab3 = st.tabs(["📊 REGISTROS", "📢 ANUNCIOS", "⚙️ CONFIGURACIÓN"])
+
+    with tab1:
+        st.markdown("### 📊 REGISTROS DEL SISTEMA")
+        df = get_registros_df()
+        
+        if not df.empty:
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.markdown(f"""
+                <div style="
+                    background: linear-gradient(145deg, rgba(0,0,0,0.6), rgba(26,31,46,0.8));
+                    border: 2px solid rgba(0,212,255,0.4);
+                    border-radius: 12px;
+                    padding: 1.5rem;
+                    text-align: center;
+                ">
+                    <h3 style="
+                        color: #00d4ff;
+                        font-family: 'Orbitron', sans-serif;
+                        font-size: 2.5rem;
+                        margin: 0;
+                        font-weight: 900;
+                    ">{len(df)}</h3>
+                    <p style="color: #a0a0a0; font-size: 0.9rem; margin: 0.5rem 0 0 0; text-transform: uppercase; letter-spacing: 2px;">REGISTROS</p>
+                </div>
+                """, unsafe_allow_html=True)
+            with col2:
+                ingresos = len(df[df['evento'] == 'ingreso'])
+                st.markdown(f"""
+                <div style="
+                    background: linear-gradient(145deg, rgba(0,0,0,0.6), rgba(26,31,46,0.8));
+                    border: 2px solid rgba(0,212,255,0.4);
+                    border-radius: 12px;
+                    padding: 1.5rem;
+                    text-align: center;
+                ">
+                    <h3 style="
+                        color: #00d4ff;
+                        font-family: 'Orbitron', sans-serif;
+                        font-size: 2.5rem;
+                        margin: 0;
+                        font-weight: 900;
+                    ">{ingresos}</h3>
+                    <p style="color: #a0a0a0; font-size: 0.9rem; margin: 0.5rem 0 0 0; text-transform: uppercase; letter-spacing: 2px;">INGRESOS</p>
+                </div>
+                """, unsafe_allow_html=True)
+            with col3:
+                finalizaciones = len(df[df['evento'] == 'finalizacion'])
+                st.markdown(f"""
+                <div style="
+                    background: linear-gradient(145deg, rgba(0,0,0,0.6), rgba(26,31,46,0.8));
+                    border: 2px solid rgba(0,212,255,0.4);
+                    border-radius: 12px;
+                    padding: 1.5rem;
+                    text-align: center;
+                ">
+                    <h3 style="
+                        color: #00d4ff;
+                        font-family: 'Orbitron', sans-serif;
+                        font-size: 2.5rem;
+                        margin: 0;
+                        font-weight: 900;
+                    ">{finalizaciones}</h3>
+                    <p style="color: #a0a0a0; font-size: 0.9rem; margin: 0.5rem 0 0 0; text-transform: uppercase; letter-spacing: 2px;">COMPLETADOS</p>
+                </div>
+                """, unsafe_allow_html=True)
+            with col4:
+                usuarios_unicos = df['cedula'].nunique()
+                st.markdown(f"""
+                <div style="
+                    background: linear-gradient(145deg, rgba(0,0,0,0.6), rgba(26,31,46,0.8));
+                    border: 2px solid rgba(0,212,255,0.4);
+                    border-radius: 12px;
+                    padding: 1.5rem;
+                    text-align: center;
+                ">
+                    <h3 style="
+                        color: #00d4ff;
+                        font-family: 'Orbitron', sans-serif;
+                        font-size: 2.5rem;
+                        margin: 0;
+                        font-weight: 900;
+                    ">{usuarios_unicos}</h3>
+                    <p style="color: #a0a0a0; font-size: 0.9rem; margin: 0.5rem 0 0 0; text-transform: uppercase; letter-spacing: 2px;">USUARIOS</p>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            st.divider()
+            st.dataframe(df, use_container_width=True, height=400)
+            
+            csv = df.to_csv(index=False).encode("utf-8")
+            st.download_button(
+                "📥 EXPORTAR REGISTROS", 
+                csv, 
+                file_name=f"gia_training_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                mime="text/csv",
+                type="primary",
+                use_container_width=True
+            )
+        else:
+            st.info("📭 BASE DE DATOS VACÍA")
+
+    with tab2:
+        st.markdown("### ➕ PUBLICAR ANUNCIO")
+        
+        with st.form("news_form"):
+            col1, col2 = st.columns(2)
+            with col1:
+                titulo = st.text_input("📌 TÍTULO *")
+                fecha = st.text_input("📅 FECHA *", value=datetime.now().strftime("%Y-%m-%d %H:%M"))
+            with col2:
+                plataforma = st.text_input("💻 PLATAFORMA *")
+                detalle = st.text_area("📝 DETALLES")
+            
+            submitted = st.form_submit_button("➕ PUBLICAR", type="primary", use_container_width=True)
+            
+            if submitted:
+                if titulo and fecha and plataforma:
+                    news = get_news()
+                    news.append({"titulo": titulo, "fecha": fecha, "plataforma": plataforma, "detalle": detalle})
+                    save_news(news)
+                    st.success("✅ ANUNCIO PUBLICADO")
+                    st.rerun()
+                else:
+                    st.error("⚠️ CAMPOS OBLIGATORIOS INCOMPLETOS")
+        
+        st.divider()
+        st.markdown("### 📰 ANUNCIOS PUBLICADOS")
+        
+        news_list = get_news()
+        if news_list:
+            for idx, n in enumerate(news_list):
+                with st.expander(f"🗓️ {n.get('titulo', 'Sin título')}"):
+                    st.write(f"**Fecha:** {n.get('fecha', '')}")
+                    st.write(f"**Plataforma:** {n.get('plataforma', '')}")
+                    st.write(f"**Detalle:** {n.get('detalle', 'N/A')}")
+                    if st.button(f"🗑️ ELIMINAR", key=f"del_{idx}"):
+                        delete_noticia(idx)
+                        st.success("Anuncio eliminado")
+                        st.rerun()
+        else:
+            st.info("📭 NO HAY ANUNCIOS")
+
+    with tab3:
+        st.markdown("### ⚙️ CONFIGURACIÓN DE ÁREAS")
+        
+        current_areas = get_areas()
+        current = json.dumps(current_areas, ensure_ascii=False, indent=2)
+        
+        st.info("💡 Formato JSON: {\"Área\": [\"url1\", \"url2\"]}")
+        
+        edited = st.text_area("DATOS DE CONFIGURACIÓN", value=current, height=400)
+        
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            if st.button("💾 GUARDAR CAMBIOS", type="primary", use_container_width=True):
+                try:
+                    new_data = json.loads(edited)
+                    save_areas(new_data)
+                    st.success("✅ CONFIGURACIÓN ACTUALIZADA")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"❌ ERROR EN FORMATO: {e}")
+        with col2:
+            if st.button("🔄 RECARGAR", use_container_width=True):
+                st.rerun()
+
+# ------------------ Router ------------------
+if mode == "Inicio":
+    page_inicio()
+elif mode == "Registro":
+    page_registro()
+elif mode == "Capacitaciones":
+    page_capacitaciones()
+elif mode == "Noticias":
+    page_noticias()
+elif mode == "Admin":
+    page_admin()
