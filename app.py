@@ -552,7 +552,7 @@ def page_inicio():
         </div>
         """, unsafe_allow_html=True)
         
-        if st.button("🚀 COMENZAR CAPACITACIÓN", type="primary", use_container_width=True):
+        if st.button("🚀 COMENZAR CAPACITACIÓN", type="primary", use_container_width=True, key="btn_inicio"):
             st.session_state.redirect_to = "Registro"
             st.rerun()
     
@@ -626,11 +626,11 @@ def page_registro():
         
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("🎥 INICIAR CAPACITACIÓN", type="primary", use_container_width=True):
+            if st.button("🎥 INICIAR CAPACITACIÓN", type="primary", use_container_width=True, key="btn_iniciar_cap"):
                 st.session_state.redirect_to = "Capacitaciones"
                 st.rerun()
         with col2:
-            if st.button("🔄 NUEVO REGISTRO", use_container_width=True):
+            if st.button("🔄 NUEVO REGISTRO", use_container_width=True, key="btn_nuevo_reg"):
                 if st.session_state.timer_start:
                     final_time = int(time.time() - st.session_state.timer_start)
                     append_registro(
@@ -705,7 +705,7 @@ def page_capacitaciones():
         <p style="text-align: center; color: #e0e0e0;">Debes registrarte para acceder al contenido de capacitación</p>
         </div>
         """, unsafe_allow_html=True)
-        if st.button("📝 IR A REGISTRO", type="primary"):
+        if st.button("📝 IR A REGISTRO", type="primary", key="btn_ir_registro"):
             st.session_state.redirect_to = "Registro"
             st.rerun()
         return
@@ -731,8 +731,12 @@ def page_capacitaciones():
     with col2:
         st.markdown(f'<div class="timer-display">{seconds_to_hms(elapsed)}</div>', unsafe_allow_html=True)
     with col3:
-        if st.button("🔄 SYNC", help="Actualizar cronómetro"):
-            st.rerun()
+        st.button("🔄", help="Actualizar cronómetro", key="btn_actualizar_timer")
+    
+    # Auto-actualizar cada 5 segundos
+    if st.session_state.timer_start:
+        time.sleep(0.1)
+        st.rerun()
     
     st.markdown("</div>", unsafe_allow_html=True)
     
