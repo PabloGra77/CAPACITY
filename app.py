@@ -138,6 +138,22 @@ st.markdown("""
         background: linear-gradient(180deg, rgba(15,20,25,0.98), rgba(26,31,46,0.98));
     }
     
+    [data-testid="stSidebar"] * {
+        color: #e0e0e0;
+    }
+    
+    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
+        color: #00d4ff !important;
+    }
+    
+    [data-testid="stSidebar"] p {
+        color: #e0e0e0 !important;
+    }
+    
+    [data-testid="stSidebar"] label {
+        color: #00d4ff !important;
+    }
+    
     h1, h2, h3 {
         color: #00d4ff;
         font-weight: 700;
@@ -161,7 +177,7 @@ st.markdown("""
     }
     
     .stRadio [role="radiogroup"] label {
-        color: #a0a0a0 !important;
+        color: #e0e0e0 !important;
         padding: 0.8rem 1.2rem;
         border-radius: 8px;
         transition: all 0.3s ease;
@@ -170,14 +186,36 @@ st.markdown("""
         border-left: 3px solid transparent;
         font-weight: 600;
         font-size: 1rem;
+        background: rgba(26,31,46,0.5);
+    }
+    
+    .stRadio [role="radiogroup"] label span {
+        color: #e0e0e0 !important;
     }
     
     .stRadio [role="radiogroup"] label:hover {
-        background: linear-gradient(90deg, rgba(0,212,255,0.15), transparent);
-        color: #00d4ff !important;
+        background: linear-gradient(90deg, rgba(0,212,255,0.25), rgba(0,212,255,0.1));
+        color: #ffffff !important;
         border-left-color: #00d4ff;
         transform: translateX(5px);
-        box-shadow: 0 0 15px rgba(0,212,255,0.2);
+        box-shadow: 0 0 15px rgba(0,212,255,0.3);
+    }
+    
+    .stRadio [role="radiogroup"] label:hover span {
+        color: #ffffff !important;
+    }
+    
+    .stRadio [role="radiogroup"] label[data-baseweb="radio"] div {
+        color: #e0e0e0 !important;
+    }
+    
+    .stRadio div[role="radiogroup"] > label > div:first-child {
+        background-color: rgba(0,212,255,0.3) !important;
+        border-color: #00d4ff !important;
+    }
+    
+    .stRadio div[role="radiogroup"] > label > div:first-child::after {
+        background-color: #00d4ff !important;
     }
     
     .stForm {
