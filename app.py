@@ -452,6 +452,28 @@ if modo == "📊 Dashboard Completo":
                 plot_bgcolor='rgba(0,0,0,0)'
             )
             st.plotly_chart(fig_pie, use_container_width=True)
+        else:
+            st.info("No hay casos cerrados para mostrar.")
+    
+    # Tabla de técnicos
+    st.markdown("### 👥 Ranking de Técnicos")
+            cumplidos = (cerrados["Estado SLA"] == "Cumplido").sum()
+            tardios = (cerrados["Estado SLA"] == "Tardío").sum()
+            
+            fig_pie = px.pie(
+                pd.DataFrame({"Estado": ["Cumplido", "Tardío"], "Cantidad": [cumplidos, tardios]}),
+                names="Estado", values="Cantidad",
+                color="Estado",
+                color_discrete_map={"Cumplido": "#10AC84", "Tardío": "#EE5A6F"},
+                hole=0.4
+            )
+            fig_pie.update_layout(
+                template="plotly_dark",
+                height=400,
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)'
+            )
+            st.plotly_chart(fig_pie, use_container_width=True)
     
     # Tabla de técnicos
     st.markdown("### 👥 Ranking de Técnicos")
@@ -596,93 +618,4 @@ else:
     
     time_module.sleep(5)
     st.session_state.tv_index += 1
-    st.rerun()        
-        if not df.empty:
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                st.metric("Total Registros", len(df))
-            with col2:
-                st.metric("Ingresos", len(df[df['evento'] == 'ingreso']))
-            with col3:
-                st.metric("Finalizaciones", len(df[df['evento'] == 'finalizacion']))
-            with col4:
-                st.metric("Usuarios Únicos", df['cedula'].nunique())
-            
-            st.dataframe(df, use_container_width=True, height=400)
-            
-            csv = df.to_csv(index=False).encode("utf-8")
-            st.download_button(
-                "📥 Descargar Registros (CSV)",
-                csv,
-                file_name=f"registros_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-                mime="text/csv",
-                use_container_width=True
-            )
-        else:
-            st.info("📭 No hay registros aún")
-    
-    with tab2:
-        st.markdown("### 📹 Configuración de Áreas y Capacitaciones")
-        
-        st.markdown("""
-        <div class="info-box">
-            <strong>ℹ️ Información:</strong> Las plataformas corporativas (360, Panacea, Office 365, Correo) son obligatorias para todas las áreas.
-            Aquí puedes agregar videos específicos adicionales para cada área.
-        </div>
-        """, unsafe_allow_html=True)
-        
-        areas_actuales = get_areas()
-        area_seleccionada = st.selectbox("Seleccionar Área", list(areas_actuales.keys()))
-        
-        st.markdown(f"#### Videos Configurados para {area_seleccionada}")
-        
-        videos_actuales = areas_actuales.get(area_seleccionada, [])
-        
-        if videos_actuales:
-            for idx, video in enumerate(videos_actuales):
-                with st.expander(f"📹 {video.get('nombre', 'Video ' + str(idx+1))}"):
-                    st.write(f"**URL:** {video.get('url', 'N/A')}")
-                    st.write(f"**Descripción:** {video.get('descripcion', 'N/A')}")
-                    if st.button(f"🗑️ Eliminar", key=f"del_video_{idx}"):
-                        videos_actuales.pop(idx)
-                        areas_actuales[area_seleccionada] = videos_actuales
-                        save_areas(areas_actuales)
-                        st.success("Video eliminado")
-                        st.rerun()
-        else:
-            st.info("Esta área aún no tiene videos específicos configurados")
-        
-        st.markdown("#### ➕ Agregar Nuevo Video")
-        
-        with st.form("add_video_form"):
-            col1, col2 = st.columns(2)
-            with col1:
-                nuevo_nombre = st.text_input("Nombre del Video *")
-                nueva_url = st.text_input("URL de SharePoint *", placeholder="https://sharepoint.com/...")
-            with col2:
-                nueva_descripcion = st.text_area("Descripción")
-            
-            if st.form_submit_button("➕ Agregar Video", use_container_width=True):
-                if nuevo_nombre and nueva_url:
-                    nuevo_video = {
-                        "nombre": nuevo_nombre,
-                        "url": nueva_url,
-                        "descripcion": nueva_descripcion
-                    }
-                    videos_actuales.append(nuevo_video)
-                    areas_actuales[area_seleccionada] = videos_actuales
-                    save_areas(areas_actuales)
-                    st.success("✅ Video agregado exitosamente")
-                    st.rerun()
-                else:
-                    st.error("⚠️ Completa el nombre y la URL del video")
-
-# ------------------ Router ------------------
-if st.session_state.page == "Inicio":
-    page_inicio()
-elif st.session_state.page == "Registro":
-    page_registro()
-elif st.session_state.page == "Capacitaciones":
-    page_capacitaciones()
-elif st.session_state.page == "Admin":
-    page_admin()
+    st.rerun()
