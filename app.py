@@ -39,29 +39,34 @@ if 'logged_in' not in st.session_state:
 if not st.session_state.logged_in:
     st.title("Registro de Capacitación")
     st.write("Por favor, ingrese sus datos para registrar su asistencia.")
-
+ 
     with st.form("login_form"):
-        nombres = st.text_input("Nombres", required=True)
-        apellidos = st.text_input("Apellidos", required=True)
-        cedula = st.text_input("Cédula/Documento", required=True)
-        correo = st.text_input("Correo Electrónico", required=True)
-        area = st.selectbox("Área", ["Ventas", "Recursos Humanos", "TI"], required=True)
-        
+        # ----- INICIO DE CAMBIOS -----
+        # Quitamos required=True de todos los campos
+        nombres = st.text_input("Nombres")
+        apellidos = st.text_input("Apellidos")
+        cedula = st.text_input("Cédula/Documento")
+        correo = st.text_input("Correo Electrónico")
+        area = st.selectbox("Área", ["Ventas", "Recursos Humanos", "TI"])
         submitted = st.form_submit_button("Ingresar y Comenzar")
-
+ 
         if submitted:
-            # Guardar datos en el estado de sesión
-            st.session_state.logged_in = True
-            st.session_state.user_data = {
-                "nombres": nombres,
-                "apellidos": apellidos,
-                "cedula": cedula,
-                "correo": correo,
-                "area": area
-            }
-            # Iniciar el cronómetro (FR4)
-            st.session_state.start_time = datetime.now()
-            st.rerun() # Recargar la app para mostrar la vista de capacitación
+            # Añadimos validación manual
+            if not nombres or not apellidos or not cedula or not correo:
+                st.error("¡Error! Por favor, complete todos los campos.")
+            else:
+                # Si todo está bien, continuamos como antes
+                st.session_state.logged_in = True
+                st.session_state.user_data = {
+                    "nombres": nombres,
+                    "apellidos": apellidos,
+                    "cedula": cedula,
+                    "correo": correo,
+                    "area": area
+                }
+                st.session_state.start_time = datetime.now()
+                st.rerun()
+        # ----- FIN DE CAMBIOS -----
 
 # --- VISTA 2: Portal de Capacitación (FR2, FR3, FR4) ---
 else:
