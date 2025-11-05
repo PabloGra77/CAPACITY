@@ -1,600 +1,602 @@
-import json, time, uuid, sqlite3
-from datetime import datetime
 import pandas as pd
 import streamlit as st
+import plotly.express as px
+import plotly.graph_objects as go
+from datetime import datetime, timedelta, time
+from zoneinfo import ZoneInfo
+from io import BytesIO
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.units import inch
+import unicodedata
+import time as time_module
 
-ADMIN_PIN = "goleman123"
-
-# Plataformas predeterminadas para todas las áreas
-PLATAFORMAS_PREDETERMINADAS = [
-    {
-        "nombre": "360",
-        "url": "https://sharepoint.com/360",
-        "tipo": "predeterminado"
-    },
-    {
-        "nombre": "Panacea",
-        "url": "https://sharepoint.com/panacea",
-        "tipo": "predeterminado"
-    },
-    {
-        "nombre": "Office 365",
-        "url": "https://sharepoint.com/office365",
-        "tipo": "predeterminado"
-    },
-    {
-        "nombre": "Correo Corporativo",
-        "url": "https://sharepoint.com/correo",
-        "tipo": "predeterminado"
-    }
-]
-
+# ==========================================
+# CONFIGURACIÓN INICIAL
+# ==========================================
 st.set_page_config(
-    page_title="GIA TRAINING", 
-    page_icon="🎓", 
+    page_title="GIA - Sistema SLA",
+    page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# CSS estilo Moodle moderno
+# Constantes
+OFFSET_HOURS = 5.0
+WORK_SCHEDULE = {
+    0: [(time(7,0), time(17,0))],
+    1: [(time(7,0), time(17,0))],
+    2: [(time(7,0), time(17,0))],
+    3: [(time(7,0), time(17,0))],
+    4: [(time(7,0), time(16,0))],
+    5: [(time(8,0), time(13,0))],
+    6: []
+}
+
+SLA_HOURS = {
+    "muy alta": 4,
+    "alta": 8,
+    "media": 16,
+    "baja": 32,
+    "muy baja": 2/60
+}
+
+# ==========================================
+# ESTILOS CSS MODERNOS
+# ==========================================
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
-    
-    * {
-        font-family: 'Roboto', sans-serif;
+    /* Tema principal */
+    :root {
+        --primary: #2E86DE;
+        --success: #10AC84;
+        --warning: #F79F1F;
+        --danger: #EE5A6F;
+        --dark: #1E272E;
+        --light: #F8F9FA;
     }
     
+    /* Fondo */
     .stApp {
-        background: #f4f4f4;
+        background: linear-gradient(135deg, #0F2027 0%, #203A43 50%, #2C5364 100%);
     }
     
-    .main-header {
-        background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
-        color: white;
-        padding: 2rem;
-        border-radius: 8px;
-        text-align: center;
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    /* Tarjetas métricas */
+    .metric-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        transition: transform 0.3s ease;
     }
     
-    .course-card {
-        background: white;
-        border-radius: 8px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        border-left: 4px solid #1976d2;
-        transition: all 0.3s;
+    .metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.4);
     }
     
-    .course-card:hover {
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        transform: translateY(-2px);
+    .metric-value {
+        font-size: 42px;
+        font-weight: 900;
+        line-height: 1;
+        margin: 12px 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
     
-    .activity-card {
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
-        border-radius: 6px;
-        padding: 1rem;
-        margin: 0.5rem 0;
-        border-left: 3px solid #28a745;
+    .metric-label {
+        font-size: 14px;
+        color: rgba(255,255,255,0.7);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
     }
     
-    .timer-display {
-        background: white;
-        border: 2px solid #1976d2;
-        border-radius: 8px;
-        padding: 1.5rem;
-        text-align: center;
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: #1976d2;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    /* Encabezados */
+    h1, h2, h3 {
+        color: white !important;
+        font-weight: 700 !important;
     }
     
-    .stButton>button {
-        background: #1976d2;
+    /* Ocultar elementos de Streamlit */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* Botones personalizados */
+    .stButton button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border: none;
-        border-radius: 6px;
-        font-weight: 500;
-        padding: 0.6rem 1.5rem;
-        transition: all 0.3s;
+        border-radius: 12px;
+        padding: 12px 24px;
+        font-weight: 600;
+        transition: all 0.3s ease;
     }
     
-    .stButton>button:hover {
-        background: #1565c0;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    .stButton button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
     }
     
-    .stTextInput>div>div>input, .stSelectbox>div>div>select {
-        border: 1px solid #ced4da;
-        border-radius: 4px;
-        padding: 0.5rem;
-    }
-    
-    .stTextInput>div>div>input:focus, .stSelectbox>div>div>select:focus {
-        border-color: #1976d2;
-        box-shadow: 0 0 0 0.2rem rgba(25,118,210,0.25);
-    }
-    
-    [data-testid="stSidebar"] {
-        background: #2c3e50;
-    }
-    
-    [data-testid="stSidebar"] * {
-        color: white;
-    }
-    
-    .sidebar-content {
-        background: #34495e;
-        border-radius: 8px;
-        padding: 1rem;
-        margin: 0.5rem 0;
-    }
-    
-    .breadcrumb {
-        background: white;
-        padding: 1rem;
-        border-radius: 6px;
-        margin-bottom: 1rem;
-        color: #6c757d;
-    }
-    
-    .info-box {
-        background: #e3f2fd;
-        border-left: 4px solid #2196f3;
-        padding: 1rem;
-        border-radius: 4px;
-        margin: 1rem 0;
-    }
-    
-    .success-box {
-        background: #e8f5e9;
-        border-left: 4px solid #4caf50;
-        padding: 1rem;
-        border-radius: 4px;
-        margin: 1rem 0;
-    }
-    
-    .warning-box {
-        background: #fff3e0;
-        border-left: 4px solid #ff9800;
-        padding: 1rem;
-        border-radius: 4px;
-        margin: 1rem 0;
+    /* Tablas */
+    .dataframe {
+        background: rgba(255,255,255,0.05) !important;
+        border-radius: 12px;
+        overflow: hidden;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# ------------------ Database Setup ------------------
-DB_FILE = "gia_training.db"
+# ==========================================
+# FUNCIONES AUXILIARES
+# ==========================================
+def norm(s: str) -> str:
+    if pd.isna(s) or s is None:
+        return ""
+    s = str(s)
+    s = "".join(ch for ch in unicodedata.normalize("NFD", s) 
+                if unicodedata.category(ch) != "Mn")
+    return s.lower().strip()
 
-def init_database():
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
+def to_timestamp(fecha_str, offset=OFFSET_HOURS):
+    if pd.isna(fecha_str):
+        return pd.NaT
+    try:
+        dt = pd.to_datetime(fecha_str, errors='coerce', dayfirst=True)
+        if pd.isna(dt):
+            return pd.NaT
+        return dt - timedelta(hours=offset)
+    except:
+        return pd.NaT
+
+def business_hours_between(start: datetime, end: datetime) -> float:
+    if pd.isna(start) or pd.isna(end) or end <= start:
+        return 0.0
     
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS registros (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp TEXT,
-            session_id TEXT,
-            nombres TEXT,
-            apellidos TEXT,
-            cedula TEXT,
-            correo TEXT,
-            area TEXT,
-            evento TEXT,
-            duracion_seg INTEGER,
-            observaciones TEXT
-        )
-    ''')
+    total_seconds = 0.0
+    current = start
     
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS areas (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT UNIQUE,
-            videos TEXT
-        )
-    ''')
+    for _ in range(400):
+        current_date = current.date()
+        weekday = current.weekday()
+        
+        if weekday not in WORK_SCHEDULE or not WORK_SCHEDULE[weekday]:
+            next_day = datetime.combine(current_date + timedelta(days=1), time(0, 0))
+            if next_day >= end:
+                break
+            current = next_day
+            continue
+        
+        for (start_time, end_time) in WORK_SCHEDULE[weekday]:
+            block_start = datetime.combine(current_date, start_time)
+            block_end = datetime.combine(current_date, end_time)
+            
+            actual_start = max(current, block_start)
+            actual_end = min(end, block_end)
+            
+            if actual_end > actual_start:
+                total_seconds += (actual_end - actual_start).total_seconds()
+        
+        next_day = datetime.combine(current_date + timedelta(days=1), time(0, 0))
+        if next_day >= end:
+            break
+        current = next_day
     
-    conn.commit()
-    conn.close()
+    return total_seconds / 3600.0
 
-init_database()
-
-# ------------------ Helpers ------------------
-def get_areas():
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT nombre, videos FROM areas")
-    rows = cursor.fetchall()
-    conn.close()
+def get_sla_hours(priority: str) -> float:
+    if pd.isna(priority):
+        return 8.0
     
-    if not rows:
-        default_areas = {
-            "PPL": [],
-            "Recursos Humanos": [],
-            "Ventas": [],
-            "Tecnología": [],
-            "Finanzas": []
-        }
-        save_areas(default_areas)
-        return default_areas
+    priority_norm = norm(priority)
     
-    areas = {}
-    for nombre, videos_json in rows:
-        areas[nombre] = json.loads(videos_json) if videos_json else []
-    return areas
+    if "muy baja" in priority_norm or "muybaja" in priority_norm:
+        return 2/60
+    elif "muy alta" in priority_norm or "muyalta" in priority_norm:
+        return 4
+    elif "alta" in priority_norm:
+        return 8
+    elif "media" in priority_norm:
+        return 16
+    elif "baja" in priority_norm:
+        return 32
+    
+    return 8.0
 
-def save_areas(areas_dict):
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM areas")
-    for nombre, videos in areas_dict.items():
-        videos_json = json.dumps(videos)
-        cursor.execute("INSERT INTO areas (nombre, videos) VALUES (?, ?)", (nombre, videos_json))
-    conn.commit()
-    conn.close()
+def is_resolved(estado: str) -> bool:
+    estado_norm = norm(estado)
+    return "resuel" in estado_norm or "cerr" in estado_norm or "solucion" in estado_norm
 
-def append_registro(**kwargs):
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute('''
-        INSERT INTO registros (timestamp, session_id, nombres, apellidos, cedula, correo, area, evento, duracion_seg, observaciones)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        kwargs.get("session_id", ""),
-        kwargs.get("nombres", ""),
-        kwargs.get("apellidos", ""),
-        kwargs.get("cedula", ""),
-        kwargs.get("correo", ""),
-        kwargs.get("area", ""),
-        kwargs.get("evento", ""),
-        kwargs.get("duracion_seg", ""),
-        kwargs.get("observaciones", "")
-    ))
-    conn.commit()
-    conn.close()
-
-def get_registros_df():
-    conn = sqlite3.connect(DB_FILE)
-    df = pd.read_sql_query("SELECT * FROM registros ORDER BY id DESC", conn)
-    conn.close()
+def procesar_datos(df: pd.DataFrame):
+    df["Fecha Apertura"] = df["Fecha de apertura"].apply(to_timestamp)
+    df["Resuelto"] = df["Estados"].apply(is_resolved)
+    
+    df["Fecha Cierre"] = df.apply(
+        lambda r: to_timestamp(r["Última modificación"]) if r["Resuelto"] else pd.NaT,
+        axis=1
+    )
+    
+    def calc_horas(row):
+        if pd.isna(row["Fecha Apertura"]):
+            return 0.0
+        
+        if row["Resuelto"] and pd.notna(row["Fecha Cierre"]):
+            end_date = row["Fecha Cierre"]
+        else:
+            end_date = datetime.now()
+        
+        return business_hours_between(row["Fecha Apertura"], end_date)
+    
+    df["Horas Hábiles"] = df.apply(calc_horas, axis=1)
+    df["Minutos Hábiles"] = df["Horas Hábiles"] * 60
+    df["SLA Límite (h)"] = df["Prioridad"].apply(get_sla_hours)
+    df["SLA Límite (min)"] = df["SLA Límite (h)"] * 60
+    
+    def estado_sla(row):
+        if not row["Resuelto"]:
+            if row["Horas Hábiles"] > row["SLA Límite (h)"]:
+                return "Abierto (Tardío)"
+            return "Abierto"
+        else:
+            if row["Horas Hábiles"] <= row["SLA Límite (h)"]:
+                return "Cumplido"
+            return "Tardío"
+    
+    df["Estado SLA"] = df.apply(estado_sla, axis=1)
+    df["Es Tardío"] = df["Estado SLA"].str.contains("Tardío")
+    
     return df
 
-def seconds_to_hms(s):
-    s = int(s)
-    h = s // 3600
-    m = (s % 3600) // 60
-    sec = s % 60
-    return f"{h:02d}:{m:02d}:{sec:02d}"
+def generar_resumen(df: pd.DataFrame, col_tecnico: str) -> pd.DataFrame:
+    resumen = df.groupby(col_tecnico).agg(
+        Asignados=("ID", "count"),
+        Resueltos=("Resuelto", "sum"),
+        Tardíos=("Es Tardío", "sum")
+    ).reset_index()
+    
+    def calc_sla_pct(row):
+        if row["Resueltos"] == 0:
+            return 0.0
+        cumplidos = row["Resueltos"] - row["Tardíos"]
+        return (cumplidos / row["Resueltos"]) * 100
+    
+    resumen["SLA (%)"] = resumen.apply(calc_sla_pct, axis=1)
+    
+    return resumen
 
-# ------------------ State ------------------
-if "session_id" not in st.session_state:
-    st.session_state.session_id = str(uuid.uuid4())
+def crear_tarjeta_metrica(label, value, icon="📊"):
+    return f"""
+    <div class='metric-card'>
+        <div class='metric-label'>{icon} {label}</div>
+        <div class='metric-value'>{value}</div>
+    </div>
+    """
 
-if "timer_start" not in st.session_state:
-    st.session_state.timer_start = None
-
-if "user" not in st.session_state:
-    st.session_state.user = {}
-
-if "page" not in st.session_state:
-    st.session_state.page = "Inicio"
-
-# ------------------ Data ------------------
-AREAS = get_areas()
-
-# ------------------ Sidebar ------------------
+# ==========================================
+# SIDEBAR - CONFIGURACIÓN
+# ==========================================
 with st.sidebar:
-    st.markdown("## 🎓 GIA TRAINING")
+    st.markdown("### ⚙️ Configuración")
+    
+    # Selector de modo
+    modo = st.radio(
+        "Modo de visualización",
+        ["📊 Dashboard Completo", "📺 Pantalla TV"],
+        key="modo_viz"
+    )
+    
     st.markdown("---")
     
-    if st.session_state.user:
-        st.markdown(f"""
-        <div class="sidebar-content">
-            <h4>👤 Usuario</h4>
-            <p><strong>{st.session_state.user.get('nombres')} {st.session_state.user.get('apellidos')}</strong></p>
-            <p>📍 {st.session_state.user.get('area')}</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        if st.session_state.timer_start:
-            elapsed = int(time.time() - st.session_state.timer_start)
-            st.markdown(f"""
-            <div class="sidebar-content" style="text-align: center;">
-                <h4>⏱️ Tiempo</h4>
-                <h2 style="color: #4caf50; margin: 0;">{seconds_to_hms(elapsed)}</h2>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        st.markdown("---")
+    # Información del sistema
+    st.markdown("### 🕐 Sistema")
+    now_bog = datetime.now(ZoneInfo("America/Bogota"))
+    now_server = now_bog + timedelta(hours=OFFSET_HOURS)
     
-    st.markdown("### 📋 Navegación")
+    st.info(f"**Bogotá:** {now_bog.strftime('%H:%M:%S')}")
+    st.info(f"**Servidor:** {now_server.strftime('%H:%M:%S')}")
+    st.caption(f"Desfase: +{OFFSET_HOURS}h")
     
-    if st.button("🏠 Inicio", use_container_width=True):
-        st.session_state.page = "Inicio"
-        st.rerun()
+    st.markdown("---")
     
-    if st.button("📝 Registro", use_container_width=True):
-        st.session_state.page = "Registro"
-        st.rerun()
+    # Límites SLA
+    with st.expander("📋 Límites SLA"):
+        st.markdown("""
+        - **Muy Alta:** 4 horas
+        - **Alta:** 8 horas  
+        - **Media:** 16 horas (2 días)
+        - **Baja:** 32 horas (4 días)
+        - **Muy Baja:** 2 minutos
+        """)
     
-    if st.button("📚 Mis Capacitaciones", use_container_width=True):
-        st.session_state.page = "Capacitaciones"
-        st.rerun()
-    
-    if st.button("⚙️ Administración", use_container_width=True):
-        st.session_state.page = "Admin"
-        st.rerun()
+    st.markdown("---")
+    st.caption("GIA v2.0 | IPS Goleman")
 
-# ------------------ Pages ------------------
-def page_inicio():
-    st.markdown('<div class="main-header">🎓 Plataforma de Capacitación GIA</div>', unsafe_allow_html=True)
+# ==========================================
+# CONTENIDO PRINCIPAL
+# ==========================================
+
+# Título principal
+st.markdown("""
+<div style='text-align:center; padding: 20px 0;'>
+    <h1 style='font-size: 48px; margin: 0;'>🎯 GIA</h1>
+    <p style='font-size: 18px; color: rgba(255,255,255,0.7); margin: 5px 0;'>
+        Sistema Inteligente de Análisis SLA
+    </p>
+</div>
+""", unsafe_allow_html=True)
+
+# Subir archivo
+uploaded = st.file_uploader(
+    "📂 Cargar archivo CSV de GIA",
+    type=["csv"],
+    help="Sube el reporte exportado desde GLPI/GIA"
+)
+
+if not uploaded:
+    st.info("👆 Sube un archivo CSV para comenzar el análisis")
+    st.stop()
+
+# Leer y procesar datos
+try:
+    df = pd.read_csv(uploaded, sep=";", encoding="utf-8")
+except:
+    df = pd.read_csv(uploaded, sep=",", encoding="utf-8")
+
+# Verificar columnas
+required_cols = ["ID", "Estados", "Fecha de apertura", "Prioridad", "Asignado a - Técnico"]
+missing = [c for c in required_cols if c not in df.columns]
+if missing:
+    st.error(f"❌ Faltan columnas: {', '.join(missing)}")
+    st.stop()
+
+df_procesado = procesar_datos(df)
+col_tec = "Asignado a - Técnico"
+
+# ==========================================
+# MODO DASHBOARD COMPLETO
+# ==========================================
+if modo == "📊 Dashboard Completo":
     
-    st.markdown("""
-    <div class="breadcrumb">
-        🏠 Inicio
-    </div>
-    """, unsafe_allow_html=True)
+    # Filtros
+    with st.expander("🔍 Filtros", expanded=True):
+        col_f1, col_f2 = st.columns(2)
+        
+        with col_f1:
+            tecnicos = ["Todos"] + sorted(df_procesado[col_tec].dropna().unique().tolist())
+            tec_sel = st.selectbox("👤 Técnico", tecnicos)
+        
+        with col_f2:
+            prioridades = ["Todas"] + sorted(df_procesado["Prioridad"].dropna().unique().tolist())
+            prior_sel = st.selectbox("⚡ Prioridad", prioridades)
     
-    col1, col2 = st.columns([2, 1])
+    # Aplicar filtros
+    df_filtrado = df_procesado.copy()
+    if tec_sel != "Todos":
+        df_filtrado = df_filtrado[df_filtrado[col_tec] == tec_sel]
+    if prior_sel != "Todas":
+        df_filtrado = df_filtrado[df_filtrado["Prioridad"] == prior_sel]
+    
+    resumen = generar_resumen(df_filtrado, col_tec)
+    
+    # KPIs principales
+    st.markdown("### 📊 Métricas Principales")
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    total_asignados = int(resumen["Asignados"].sum())
+    total_resueltos = int(resumen["Resueltos"].sum())
+    total_tardios = int(resumen["Tardíos"].sum())
+    sla_promedio = resumen["SLA (%)"].mean() if not resumen.empty else 0.0
     
     with col1:
-        st.markdown("""
-        <div class="course-card">
-            <h3>👋 Bienvenido al Sistema de Capacitación</h3>
-            <p>Esta plataforma te permite acceder a capacitaciones organizadas por áreas.</p>
+        st.markdown(crear_tarjeta_metrica("ASIGNADOS", total_asignados, "📋"), unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown(crear_tarjeta_metrica("RESUELTOS", total_resueltos, "✅"), unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown(crear_tarjeta_metrica("TARDÍOS", total_tardios, "⏰"), unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown(crear_tarjeta_metrica("SLA GLOBAL", f"{sla_promedio:.1f}%", "🎯"), unsafe_allow_html=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Gráficos
+    col_g1, col_g2 = st.columns(2)
+    
+    with col_g1:
+        st.markdown("#### 📈 Cumplimiento SLA por Técnico")
+        if not resumen.empty:
+            fig = px.bar(
+                resumen.sort_values("SLA (%)", ascending=False),
+                x=col_tec, y="SLA (%)",
+                color="SLA (%)",
+                color_continuous_scale=["#EE5A6F", "#F79F1F", "#10AC84"],
+                text_auto=".1f"
+            )
+            fig.update_layout(
+                template="plotly_dark",
+                height=400,
+                showlegend=False,
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)'
+            )
+            st.plotly_chart(fig, use_container_width=True)
+    
+    with col_g2:
+        st.markdown("#### 🥧 Distribución de Casos")
+        cerrados = df_filtrado[df_filtrado["Resuelto"] == True]
+        if not cerrados.empty:
+            cumplidos = (cerrados["Estado SLA"] == "Cumplido").sum()
+            tardios = (cerrados["Estado SLA"] == "Tardío").sum()
             
-            <h4>📋 Instrucciones:</h4>
-            <ol>
-                <li><strong>Regístrate:</strong> Ingresa tus datos personales</li>
-                <li><strong>Selecciona tu área:</strong> Elige el departamento al que perteneces</li>
-                <li><strong>Capacítate:</strong> Accede a los videos y recursos</li>
-                <li><strong>Finaliza:</strong> Completa tu capacitación y guarda tu progreso</li>
-            </ol>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        if st.button("🚀 Comenzar Capacitación", type="primary", use_container_width=True):
-            st.session_state.page = "Registro"
-            st.rerun()
+            fig_pie = px.pie(
+                pd.DataFrame({"Estado": ["Cumplido", "Tardío"], "Cantidad": [cumplidos, tardios]}),
+                names="Estado", values="Cantidad",
+                color="Estado",
+                color_discrete_map={"Cumplido": "#10AC84", "Tardío": "#EE5A6F"},
+                hole=0.4
+            )
+            fig_pie.update_layout(
+                template="plotly_dark",
+                height=400,
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)'
+            )
+            st.plotly_chart(fig_pie, use_container_width=True)
     
-    with col2:
-        st.markdown(f"""
-        <div class="course-card">
-            <h3 style="text-align: center; color: #1976d2;">{len(AREAS)}</h3>
-            <p style="text-align: center; margin: 0;">Áreas Disponibles</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        df = get_registros_df()
-        if not df.empty:
-            usuarios = df['cedula'].nunique()
+    # Tabla de técnicos
+    st.markdown("### 👥 Ranking de Técnicos")
+    
+    # Agregar medallas
+    resumen_display = resumen.sort_values("SLA (%)", ascending=False).copy()
+    resumen_display.insert(0, "Rank", ["🥇", "🥈", "🥉"] + [""] * (len(resumen_display) - 3))
+    
+    st.dataframe(
+        resumen_display,
+        use_container_width=True,
+        hide_index=True,
+        height=300
+    )
+    
+    # Detalle de casos
+    st.markdown("### 📝 Detalle de Casos")
+    
+    df_display = df_filtrado.copy()
+    df_display["Fecha Cierre"] = df_display["Fecha Cierre"].apply(
+        lambda x: "Sin cerrar" if pd.isna(x) else x
+    )
+    
+    cols_mostrar = ["ID", "Título", "Estados", col_tec, "Prioridad", 
+                    "Fecha Apertura", "Fecha Cierre",
+                    "Minutos Hábiles", "SLA Límite (min)", "Estado SLA"]
+    
+    def highlight_tardios(row):
+        if "Tardío" in str(row["Estado SLA"]):
+            return ['background-color: #EE5A6F; color: white; font-weight: bold'] * len(row)
+        return [''] * len(row)
+    
+    st.dataframe(
+        df_display[cols_mostrar].style.apply(highlight_tardios, axis=1),
+        use_container_width=True,
+        hide_index=True,
+        height=400
+    )
+    
+    # Descargar reporte
+    st.markdown("### 📥 Exportar Datos")
+    
+    col_d1, col_d2 = st.columns(2)
+    
+    with col_d1:
+        csv = df_display[cols_mostrar].to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📄 Descargar CSV",
+            data=csv,
+            file_name=f"gia_sla_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+            mime="text/csv"
+        )
+
+# ==========================================
+# MODO PANTALLA TV
+# ==========================================
+else:
+    if 'tv_index' not in st.session_state:
+        st.session_state.tv_index = 0
+    
+    resumen = generar_resumen(df_procesado, col_tec)
+    tecnicos = resumen.sort_values("SLA (%)", ascending=False).reset_index(drop=True)
+    total = len(tecnicos)
+    
+    idx = st.session_state.tv_index % (total + 1)
+    
+    placeholder = st.empty()
+    
+    with placeholder.container():
+        if idx == total:
+            # Vista global
+            st.markdown("<h1 style='text-align:center;'>🌍 RESUMEN GLOBAL</h1>", unsafe_allow_html=True)
+            
+            sla_g = resumen["SLA (%)"].mean()
+            color = "#10AC84" if sla_g >= 90 else "#F79F1F" if sla_g >= 70 else "#EE5A6F"
+            
             st.markdown(f"""
-            <div class="course-card">
-                <h3 style="text-align: center; color: #4caf50;">{usuarios}</h3>
-                <p style="text-align: center; margin: 0;">Usuarios Registrados</p>
+            <div style='text-align:center; padding: 60px 0;'>
+                <div style='color:{color}; font-size:160px; font-weight:900;'>
+                    {sla_g:.1f}%
+                </div>
+                <div style='color:rgba(255,255,255,0.6); font-size:24px;'>
+                    SLA Global del Equipo
+                </div>
             </div>
             """, unsafe_allow_html=True)
-
-def page_registro():
-    st.markdown('<div class="main-header">📝 Registro de Usuario</div>', unsafe_allow_html=True)
-    
-    st.markdown("""
-    <div class="breadcrumb">
-        🏠 Inicio / 📝 Registro
-    </div>
-    """, unsafe_allow_html=True)
-    
-    if st.session_state.user:
-        st.markdown(f"""
-        <div class="success-box">
-            <h4>✅ Registro Completado</h4>
-            <p><strong>Nombre:</strong> {st.session_state.user.get('nombres')} {st.session_state.user.get('apellidos')}</p>
-            <p><strong>Área:</strong> {st.session_state.user.get('area')}</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("📚 Ir a Mis Capacitaciones", type="primary", use_container_width=True):
-                st.session_state.page = "Capacitaciones"
-                st.rerun()
-        with col2:
-            if st.button("🔄 Nuevo Registro", use_container_width=True):
-                if st.session_state.timer_start:
-                    final_time = int(time.time() - st.session_state.timer_start)
-                    append_registro(
-                        session_id=st.session_state.session_id,
-                        **st.session_state.user,
-                        evento="cancelacion",
-                        duracion_seg=final_time,
-                        observaciones="Usuario canceló para nuevo registro"
-                    )
-                st.session_state.user = {}
-                st.session_state.timer_start = None
-                st.rerun()
-        return
-    
-    st.markdown("""
-    <div class="info-box">
-        <strong>ℹ️ Información:</strong> Completa todos los campos para acceder a las capacitaciones.
-    </div>
-    """, unsafe_allow_html=True)
-    
-    with st.form("registro_form"):
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            nombres = st.text_input("Nombres *", placeholder="Juan Carlos")
-            cedula = st.text_input("Cédula *", placeholder="1234567890")
-            area = st.selectbox("Área *", options=list(AREAS.keys()))
-        
-        with col2:
-            apellidos = st.text_input("Apellidos *", placeholder="Pérez García")
-            correo = st.text_input("Correo Electrónico *", placeholder="usuario@empresa.com")
-        
-        submitted = st.form_submit_button("✅ Registrarse e Iniciar", type="primary", use_container_width=True)
-        
-        if submitted:
-            if not (nombres and apellidos and cedula and correo and area):
-                st.error("⚠️ Por favor completa todos los campos obligatorios")
-            else:
-                st.session_state.user = {
-                    "nombres": nombres.strip(),
-                    "apellidos": apellidos.strip(),
-                    "cedula": cedula.strip(),
-                    "correo": correo.strip(),
-                    "area": area.strip()
-                }
+            
+            # Ranking
+            for i, row in tecnicos.iterrows():
+                sla = row["SLA (%)"]
+                c = "#10AC84" if sla >= 90 else "#F79F1F" if sla >= 70 else "#EE5A6F"
+                medal = "🥇" if i == 0 else "🥈" if i == 1 else "🥉" if i == 2 else f"#{i+1}"
                 
-                st.session_state.timer_start = time.time()
-                
-                append_registro(
-                    session_id=st.session_state.session_id,
-                    **st.session_state.user,
-                    evento="ingreso",
-                    duracion_seg="",
-                    observaciones="Registro inicial"
-                )
-                
-                st.success("✅ Registro exitoso. Redirigiendo...")
-                time.sleep(1)
-                st.session_state.page = "Capacitaciones"
-                st.rerun()
-
-def page_capacitaciones():
-    if not st.session_state.user:
-        st.markdown("""
-        <div class="warning-box">
-            <h4>⚠️ Acceso Restringido</h4>
-            <p>Debes registrarte primero para acceder a las capacitaciones.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("📝 Ir a Registro", type="primary"):
-            st.session_state.page = "Registro"
-            st.rerun()
-        return
-    
-    area = st.session_state.user.get("area")
-    st.markdown(f'<div class="main-header">📚 Capacitaciones - {area}</div>', unsafe_allow_html=True)
-    
-    st.markdown(f"""
-    <div class="breadcrumb">
-        🏠 Inicio / 📚 Mis Capacitaciones / {area}
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Cronómetro
-    elapsed = 0
-    if st.session_state.timer_start:
-        elapsed = int(time.time() - st.session_state.timer_start)
-    
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        st.markdown(f"""
-        <div class="course-card">
-            <h4>👤 {st.session_state.user.get('nombres')} {st.session_state.user.get('apellidos')}</h4>
-            <p>📍 Área: {area}</p>
-        </div>
-        """, unsafe_allow_html=True)
-    with col2:
-        st.markdown(f'<div class="timer-display">{seconds_to_hms(elapsed)}</div>', unsafe_allow_html=True)
-        if st.button("🔄"):
-            st.rerun()
-    
-    # Plataformas predeterminadas
-    st.markdown("### 📌 Plataformas Corporativas (Obligatorias)")
-    
-    for plat in PLATAFORMAS_PREDETERMINADAS:
-        st.markdown(f"""
-        <div class="activity-card">
-            <h4>🎥 {plat['nombre']}</h4>
-            <p>Plataforma corporativa esencial</p>
-            <a href="{plat['url']}" target="_blank" style="color: #1976d2; text-decoration: none; font-weight: 500;">
-                📺 Acceder a la capacitación →
-            </a>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    # Videos específicos del área
-    videos_area = AREAS.get(area, [])
-    
-    if videos_area:
-        st.markdown(f"### 📚 Capacitaciones Específicas de {area}")
-        
-        for idx, video in enumerate(videos_area, 1):
+                st.markdown(f"""
+                <div style='background:rgba(255,255,255,0.05); padding:24px; margin:12px 0; 
+                            border-left:5px solid {c}; border-radius:12px;
+                            display:flex; justify-content:space-between; align-items:center;'>
+                    <span style='font-size:32px;'>{medal} {row[col_tec]}</span>
+                    <span style='color:{c}; font-size:36px; font-weight:900;'>{sla:.1f}%</span>
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            # Vista individual
+            tec = tecnicos.iloc[idx]
+            sla = tec["SLA (%)"]
+            color = "#10AC84" if sla >= 90 else "#F79F1F" if sla >= 70 else "#EE5A6F"
+            
             st.markdown(f"""
-            <div class="activity-card">
-                <h4>📹 Módulo {idx}: {video.get('nombre', 'Sin título')}</h4>
-                <p>{video.get('descripcion', 'Capacitación del área')}</p>
-                <a href="{video.get('url', '#')}" target="_blank" style="color: #1976d2; text-decoration: none; font-weight: 500;">
-                    📺 Ver capacitación →
-                </a>
+            <div style='text-align:center;'>
+                <div style='color:rgba(255,255,255,0.5); font-size:20px; margin-bottom:10px;'>
+                    POSICIÓN #{idx+1} DE {total}
+                </div>
+                <h1 style='font-size:56px; margin:20px 0;'>
+                    {tec[col_tec]}
+                </h1>
             </div>
             """, unsafe_allow_html=True)
+            
+            st.markdown(f"""
+            <div style='text-align:center; padding:80px 40px; margin:40px 0;
+                        background:rgba(255,255,255,0.05); border-radius:24px;
+                        border:3px solid {color};'>
+                <div style='color:rgba(255,255,255,0.6); font-size:24px; margin-bottom:20px;'>
+                    CUMPLIMIENTO SLA
+                </div>
+                <div style='color:{color}; font-size:180px; font-weight:900; line-height:1;'>
+                    {sla:.1f}%
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                st.markdown(crear_tarjeta_metrica("ASIGNADOS", int(tec['Asignados']), "📋"), unsafe_allow_html=True)
+            
+            with col2:
+                st.markdown(crear_tarjeta_metrica("RESUELTOS", int(tec['Resueltos']), "✅"), unsafe_allow_html=True)
+            
+            with col3:
+                st.markdown(crear_tarjeta_metrica("TARDÍOS", int(tec['Tardíos']), "⏰"), unsafe_allow_html=True)
     
-    # Botón de finalización
-    st.markdown("---")
-    st.markdown("""
-    <div class="info-box">
-        <strong>ℹ️ Importante:</strong> Asegúrate de completar todas las capacitaciones antes de finalizar.
-    </div>
-    """, unsafe_allow_html=True)
-    
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        if st.button("✅ He Finalizado la Capacitación", type="primary", use_container_width=True):
-            if st.session_state.timer_start:
-                final_time = int(time.time() - st.session_state.timer_start)
-                
-                append_registro(
-                    session_id=st.session_state.session_id,
-                    **st.session_state.user,
-                    evento="finalizacion",
-                    duracion_seg=final_time,
-                    observaciones="Capacitación completada"
-                )
-                
-                st.session_state.timer_start = None
-                st.success(f"✅ Capacitación finalizada. Tiempo total: {seconds_to_hms(final_time)}")
-                st.balloons()
-                time.sleep(2)
-                
-                st.session_state.user = {}
-                st.session_state.page = "Inicio"
-                st.rerun()
-    
-    # Auto-refresh del cronómetro
-    if st.session_state.timer_start:
-        time.sleep(1)
-        st.rerun()
-
-def page_admin():
-    st.markdown('<div class="main-header">⚙️ Panel de Administración</div>', unsafe_allow_html=True)
-    
-    pin = st.text_input("🔑 PIN de Administrador", type="password")
-    
-    if pin != ADMIN_PIN:
-        st.warning("⚠️ Ingresa el PIN correcto para continuar")
-        return
-    
-    st.success("✅ Acceso autorizado")
-    
-    tab1, tab2 = st.tabs(["📊 Registros", "📹 Gestión de Áreas y Videos"])
-    
-    with tab1:
-        st.markdown("### 📊 Registros de Capacitación")
-        df = get_registros_df()
-        
+    time_module.sleep(5)
+    st.session_state.tv_index += 1
+    st.rerun()        
         if not df.empty:
             col1, col2, col3, col4 = st.columns(4)
             with col1:
