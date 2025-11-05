@@ -3,8 +3,7 @@ import streamlit as st
 import time
 from datetime import datetime
 from database import init_db, add_record
-import components.v1 as components # Para los iframes de SharePoint
-
+import streamlit.components.v1 as components # Para los iframes de SharePoint
 # Configuración de la página
 st.set_page_config(page_title="Portal de Capacitación", layout="wide")
 
