@@ -1,4 +1,3 @@
-streamlit==1.38.0
-pandas==2.2.2
-XlsxWriter==3.2.0
-reportlab==4.2.5  # opcional para exportar a PDF
+streamlit
+pandas
+openpyxl  # Necesario para exportar a Excel
