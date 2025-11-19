@@ -3,18 +3,16 @@ import streamlit as st
 import time
 from datetime import datetime
 import sqlite3 
-# Solo necesitamos estas funciones para el registro
-from database import init_db, add_record 
+from database import init_db, add_record # Asegúrate de que database.py exista y tenga estas funciones
 import streamlit.components.v1 as components 
 
-# Configuración de la página
+# --- Configuración de la página ---
 st.set_page_config(page_title="Portal de Capacitación", layout="wide")
 
 # Inicializar la base de datos al arrancar
 init_db()
 
 # --- Definición de Videos (FR3) ---
-# Aquí se mapean las áreas a la URL de los videos.
 VIDEOS_DB = {
     "Ventas": [
         {"titulo": "Técnicas de Cierre", "url": "https://.../embed..."},
@@ -37,7 +35,7 @@ if 'registered' not in st.session_state:
     st.session_state.start_time = None
 
 # ----------------------------------------------------------------------
-# --- VISTA 1: Formulario de Registro (FR1) ---
+# --- VISTA 1: Formulario de Registro ---
 # ----------------------------------------------------------------------
 
 if not st.session_state.registered:
@@ -45,7 +43,6 @@ if not st.session_state.registered:
     st.write("Por favor, ingrese sus datos para registrar su asistencia y comenzar.")
  
     with st.form("registration_form"):
-        # Se requieren todos los campos para el registro
         nombres = st.text_input("Nombres")
         apellidos = st.text_input("Apellidos")
         cedula = st.text_input("Cédula/Documento")
@@ -58,7 +55,6 @@ if not st.session_state.registered:
             if not nombres or not apellidos or not cedula or not correo:
                 st.error("🚨 ¡Error! Por favor, complete todos los campos.")
             else:
-                # Si todo está bien, continuamos
                 st.session_state.registered = True
                 st.session_state.user_data = {
                     "nombres": nombres,
@@ -71,7 +67,7 @@ if not st.session_state.registered:
                 st.rerun()
 
 # ----------------------------------------------------------------------
-# --- VISTA 2: Portal de Capacitación (FR2, FR3, FR4) ---
+# --- VISTA 2: Portal de Capacitación (Estilo LMS) ---
 # ----------------------------------------------------------------------
 
 else:
@@ -80,13 +76,62 @@ else:
     start_time = st.session_state.start_time
 
     st.title(f"Portal de Capacitación: {area} 🚀")
-    st.subheader(f"Bienvenido/a, **{user['nombres']} {user['apellidos']}**")
     
-    # Mostrar cronómetro (FR4)
-    tiempo_transcurrido = datetime.now() - start_time
-    st.info(f"⏳ Tiempo en capacitación: **{str(tiempo_transcurrido).split('.')[0]}** (Horas:Minutos:Segundos)")
-    
-    st.markdown("---")
+    # ------------------------------------------------------------------
+    # --- BARRA LATERAL (Inspirada en LMS) ---
+    # ------------------------------------------------------------------
+    with st.sidebar:
+        st.header("👤 Perfil de Participante")
+        st.write(f"**Nombre:** {user['nombres']} {user['apellidos']}")
+        st.write(f"**Área:** **{user['area']}**")
+        
+        st.markdown("---")
+        
+        # Mostrar cronómetro (FR4) en la barra lateral
+        tiempo_transcurrido = datetime.now() - start_time
+        st.metric(
+            label="⏳ Tiempo Transcurrido",
+            value=str(tiempo_transcurrido).split('.')[0],
+            help="Horas:Minutos:Segundos"
+        )
+        st.markdown("---")
+        
+        # Botón para finalizar y registrar
+        if st.button("He finalizado mi capacitación ✅", type="primary"):
+            end_time = datetime.now()
+            duration = (end_time - start_time).total_seconds()
+            
+            # Preparar datos para la base de datos
+            record_data = (
+                user["nombres"], user["apellidos"], user["cedula"], 
+                user["correo"], user["area"], 
+                start_time.strftime("%Y-%m-%d %H:%M:%S"), 
+                end_time.strftime("%Y-%m-%d %H:%M:%S"),
+                int(duration)
+            )
+            
+            # Guardar en la base de datos
+            try:
+                add_record(record_data)
+                st.success(f"🎉 ¡Registro completado! Tiempo total: {str(end_time - start_time).split('.')[0]}. Gracias.")
+                
+                # Limpiar sesión y volver al registro
+                st.session_state.registered = False
+                st.session_state.user_data = {}
+                st.session_state.start_time = None
+                
+                time.sleep(3) 
+                st.rerun()
+                
+            except sqlite3.IntegrityError:
+                st.error("⚠️ Error: Su cédula ya ha sido registrada en este ciclo de capacitación.")
+            except Exception as e:
+                st.error(f"❌ No se pudo guardar el registro. Error: {e}")
+    # ------------------------------------------------------------------
+    # --- FIN DE BARRA LATERAL ---
+    # ------------------------------------------------------------------
+
+    st.header("Contenido del Módulo de Capacitación")
     
     # Mostrar videos según el área (FR2, FR3)
     videos_del_area = VIDEOS_DB.get(area, [])
@@ -94,41 +139,19 @@ else:
     if not videos_del_area:
         st.warning("⚠️ No hay videos asignados para su área en este momento.")
     else:
-        for video in videos_del_area:
-            st.subheader(video["titulo"])
-            # Usar st.components.v1.iframe para contenido incrustado
-            components.iframe(video["url"], height=480, width=854, scrolling=False)
-            st.markdown("---")
-
-    # Botón para finalizar y registrar
-    if st.button("He finalizado mi capacitación ✅", type="primary"):
-        end_time = datetime.now()
-        duration = (end_time - start_time).total_seconds()
+        # Usamos st.tabs para organizar cada video como un módulo, mejorando la interfaz LMS
+        titulos = [video["titulo"] for video in videos_del_area]
+        tabs = st.tabs(titulos)
         
-        # Preparar datos para la base de datos
-        record_data = (
-            user["nombres"], user["apellidos"], user["cedula"], 
-            user["correo"], user["area"], 
-            start_time.strftime("%Y-%m-%d %H:%M:%S"), 
-            end_time.strftime("%Y-%m-%d %H:%M:%S"),
-            int(duration)
-        )
-        
-        # Guardar en la base de datos
-        try:
-            add_record(record_data)
-            st.success(f"🎉 ¡Registro completado! Tiempo total: {str(end_time - start_time).split('.')[0]}. Gracias.")
-            
-            # Limpiar sesión y volver al registro
-            st.session_state.registered = False
-            st.session_state.user_data = {}
-            st.session_state.start_time = None
-            
-            time.sleep(3) # Esperar 3 seg para que el usuario lea el mensaje
-            st.rerun()
-            
-        except sqlite3.IntegrityError:
-            # Esto maneja si la cédula ya se registró (si la DB lo tiene como UNIQUE)
-            st.warning("⚠️ Su cédula ya ha sido registrada en este ciclo de capacitación.")
-        except Exception as e:
-            st.error(f"❌ No se pudo guardar el registro. Error: {e}")
+        for i, tab in enumerate(tabs):
+            video = videos_del_area[i]
+            with tab:
+                st.subheader(f"Módulo: {video['titulo']}")
+                st.markdown("---")
+                # Usar st.components.v1.iframe para contenido incrustado
+                components.iframe(video["url"], height=480, width=854, scrolling=False)
+                
+                if i < len(titulos) - 1:
+                    st.info(f"✅ Haz clic en la pestaña **{titulos[i+1]}** para continuar.")
+                else:
+                    st.success("¡Felicidades! Has completado todos los módulos. Presiona el botón 'He finalizado...' en la barra lateral.")
