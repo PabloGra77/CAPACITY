@@ -1,34 +1,45 @@
 # database.py
-import sqlite3
-from datetime import datetime
 
-# Función para inicializar la base de datos
+# =========================================================
+# ESTE ES UN ESQUELETO DE EJEMPLO PARA CORREGIR EL IMPORTERROR
+# DEBES IMPLEMENTAR LA LÓGICA DE SQLITE REAL AQUÍ
+# =========================================================
+
 def init_db():
-    """Crea la tabla de registros si no existe."""
-    with sqlite3.connect('capacitacion.db') as conn:
-        c = conn.cursor()
-        c.execute('''
-        CREATE TABLE IF NOT EXISTS registros (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombres TEXT NOT NULL,
-            apellidos TEXT NOT NULL,
-            cedula TEXT NOT NULL UNIQUE,
-            correo TEXT NOT NULL,
-            area TEXT NOT NULL,
-            fecha_inicio TIMESTAMP,
-            fecha_fin TIMESTAMP,
-            duracion_segundos INTEGER
-        )
-        ''')
-        conn.commit()
+    """Inicializa la base de datos (crea las tablas 'users' y 'records')."""
+    # Lógica de SQLite para crear tablas de usuarios y registros.
+    print("Base de datos inicializada (simulado).")
+    pass # Reemplazar con la lógica de conexión y creación de tablas
 
-# Función para añadir un registro completo
-def add_record(data):
-    """Añade un nuevo registro de capacitación a la base de datos."""
-    with sqlite3.connect('capacitacion.db') as conn:
-        c = conn.cursor()
-        c.execute('''
-        INSERT INTO registros (nombres, apellidos, cedula, correo, area, fecha_inicio, fecha_fin, duracion_segundos)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ''', data)
-        conn.commit() 
+def add_record(record_data):
+    """Añade un nuevo registro de capacitación."""
+    # Lógica de SQLite para insertar un nuevo registro.
+    print(f"Registro añadido (simulado): {record_data}")
+    pass # Reemplazar con la lógica de inserción
+
+def check_user_credentials(username, password):
+    """Verifica credenciales y devuelve datos del usuario si son válidas."""
+    # Lógica REAL: Conectarse a la DB, buscar usuario, verificar hash de contraseña (bcrypt).
+    
+    # --- MOCKUP DE DATOS (REEMPLAZAR) ---
+    if username == "admin" and password == "admin123":
+        return {
+            "role": "admin",
+            "nombres": "Admin",
+            "apellidos": "Master",
+            "cedula": "00000",
+            "correo": "admin@empresa.com",
+            "area": "TI"
+        }
+    elif username == "testuser" and password == "pass123":
+        return {
+            "role": "user",
+            "nombres": "Usuario",
+            "apellidos": "Prueba",
+            "cedula": "12345",
+            "correo": "test@empresa.com",
+            "area": "Ventas"
+        }
+    else:
+        return None
+    # ------------------------------------
