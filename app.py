@@ -3,18 +3,18 @@ import streamlit as st
 import time
 from datetime import datetime
 import sqlite3 
+# Solo necesitamos estas funciones para el registro
+from database import init_db, add_record 
 import streamlit.components.v1 as components 
-# Importa las funciones de tu base de datos
-from database import init_db, add_record, check_user_credentials 
-# NOTA: La función check_user_credentials DEBE devolver un diccionario con 'role', 'nombres', etc.
 
-# --- Configuración de la página ---
+# Configuración de la página
 st.set_page_config(page_title="Portal de Capacitación", layout="wide")
 
 # Inicializar la base de datos al arrancar
 init_db()
 
-# --- Definición de Videos (Contenido simulado) ---
+# --- Definición de Videos (FR3) ---
+# Aquí se mapean las áreas a la URL de los videos.
 VIDEOS_DB = {
     "Ventas": [
         {"titulo": "Técnicas de Cierre", "url": "https://.../embed..."},
@@ -31,104 +31,64 @@ VIDEOS_DB = {
 }
 
 # --- Lógica de Sesión ---
-if 'logged_in' not in st.session_state:
-    st.session_state.logged_in = False
-    st.session_state.user_data = {} # Contendrá 'role', 'nombres', 'cedula', etc.
-    st.session_state.start_time = None
-
-# Función para cerrar sesión
-def logout():
-    st.session_state.logged_in = False
+if 'registered' not in st.session_state:
+    st.session_state.registered = False
     st.session_state.user_data = {}
     st.session_state.start_time = None
-    st.rerun()
 
-# -------------------------------------------------------------
-# --- VISTA 1: Formulario de LOGIN ---
-# -------------------------------------------------------------
+# ----------------------------------------------------------------------
+# --- VISTA 1: Formulario de Registro (FR1) ---
+# ----------------------------------------------------------------------
 
-def show_login_page():
-    st.title("Acceso al Portal de Capacitación 🔒")
-    
-    with st.form("login_form"):
-        username = st.text_input("Usuario")
-        password = st.text_input("Contraseña", type="password")
-        submitted = st.form_submit_button("Ingresar", type="primary")
-
+if not st.session_state.registered:
+    st.title("Registro de Capacitación 📝")
+    st.write("Por favor, ingrese sus datos para registrar su asistencia y comenzar.")
+ 
+    with st.form("registration_form"):
+        # Se requieren todos los campos para el registro
+        nombres = st.text_input("Nombres")
+        apellidos = st.text_input("Apellidos")
+        cedula = st.text_input("Cédula/Documento")
+        correo = st.text_input("Correo Electrónico")
+        area = st.selectbox("Área", list(VIDEOS_DB.keys())) 
+        submitted = st.form_submit_button("Ingresar y Comenzar", type="primary")
+ 
         if submitted:
-            # Llama a la función de la base de datos para verificar credenciales
-            user_info = check_user_credentials(username, password)
-            
-            if user_info:
-                st.session_state.logged_in = True
-                st.session_state.user_data = user_info
+            # Validación manual
+            if not nombres or not apellidos or not cedula or not correo:
+                st.error("🚨 ¡Error! Por favor, complete todos los campos.")
+            else:
+                # Si todo está bien, continuamos
+                st.session_state.registered = True
+                st.session_state.user_data = {
+                    "nombres": nombres,
+                    "apellidos": apellidos,
+                    "cedula": cedula,
+                    "correo": correo,
+                    "area": area
+                }
                 st.session_state.start_time = datetime.now()
                 st.rerun()
-            else:
-                st.error("Usuario o contraseña incorrectos.")
 
-# -------------------------------------------------------------
-# --- VISTA 2: PANEL DE ADMINISTRADOR ---
-# -------------------------------------------------------------
+# ----------------------------------------------------------------------
+# --- VISTA 2: Portal de Capacitación (FR2, FR3, FR4) ---
+# ----------------------------------------------------------------------
 
-def show_admin_panel():
-    st.title("Panel de Administración ⚙️")
-    st.subheader(f"Bienvenido/a, {st.session_state.user_data.get('nombres')}")
-    
-    st.markdown("---")
-    
-    tab1, tab2, tab3 = st.tabs(["📊 Reportes de Asistencia", "📹 Editar Videos", "👤 Gestión de Usuarios"])
-    
-    with tab1:
-        st.header("Reportes de Asistencia")
-        st.info("Aquí puedes cargar o visualizar la tabla completa de registros de capacitación.")
-        # Lógica para mostrar datos de la DB
-
-    with tab2:
-        st.header("Gestión de Contenido (Videos)")
-        st.info("Utiliza este formulario para añadir, editar o eliminar los enlaces de capacitación.")
-        
-        # Simulación de un formulario de edición
-        with st.form("edit_content_form"):
-            st.subheader("Modificar Videos")
-            area_select = st.selectbox("Área a modificar", list(VIDEOS_DB.keys()))
-            
-            # Muestra los videos actuales para esa área
-            st.write(f"Videos actuales para {area_select}:")
-            for i, video in enumerate(VIDEOS_DB.get(area_select, [])):
-                st.write(f"- {video['titulo']} ({video['url']})")
-            
-            st.markdown("---")
-            st.text_input("Nuevo Título (si deseas añadir)")
-            st.text_input("Nueva URL Embed")
-            
-            if st.form_submit_button("Guardar Cambios (Simulado)"):
-                st.success("Cambios guardados. (Se requiere implementar lógica persistente en DB o archivo).")
-        
-    with tab3:
-        st.header("Gestión de Usuarios y Roles")
-        st.warning("Esta funcionalidad requiere acceso completo a la tabla de usuarios de la base de datos.")
-        # Lógica para añadir/modificar usuarios y roles
-
-# -------------------------------------------------------------
-# --- VISTA 3: PORTAL DE CAPACITACIÓN (Usuario Normal) ---
-# -------------------------------------------------------------
-
-def show_user_portal():
+else:
     user = st.session_state.user_data
-    area = user.get("area") # La función de login debe devolver 'area'
+    area = user["area"]
     start_time = st.session_state.start_time
 
-    st.title(f"Portal de Capacitación: {area}")
-    st.subheader(f"Bienvenido/a, **{user.get('nombres')} {user.get('apellidos')}**")
+    st.title(f"Portal de Capacitación: {area} 🚀")
+    st.subheader(f"Bienvenido/a, **{user['nombres']} {user['apellidos']}**")
     
-    # Mostrar cronómetro
+    # Mostrar cronómetro (FR4)
     tiempo_transcurrido = datetime.now() - start_time
     st.info(f"⏳ Tiempo en capacitación: **{str(tiempo_transcurrido).split('.')[0]}** (Horas:Minutos:Segundos)")
     
     st.markdown("---")
     
-    # Mostrar videos
+    # Mostrar videos según el área (FR2, FR3)
     videos_del_area = VIDEOS_DB.get(area, [])
     
     if not videos_del_area:
@@ -136,7 +96,7 @@ def show_user_portal():
     else:
         for video in videos_del_area:
             st.subheader(video["titulo"])
-            # Usar iframe para contenido incrustado
+            # Usar st.components.v1.iframe para contenido incrustado
             components.iframe(video["url"], height=480, width=854, scrolling=False)
             st.markdown("---")
 
@@ -145,7 +105,7 @@ def show_user_portal():
         end_time = datetime.now()
         duration = (end_time - start_time).total_seconds()
         
-        # Preparar datos
+        # Preparar datos para la base de datos
         record_data = (
             user["nombres"], user["apellidos"], user["cedula"], 
             user["correo"], user["area"], 
@@ -158,31 +118,17 @@ def show_user_portal():
         try:
             add_record(record_data)
             st.success(f"🎉 ¡Registro completado! Tiempo total: {str(end_time - start_time).split('.')[0]}. Gracias.")
-            time.sleep(3) 
-            logout() # Usa la función de logout para limpiar y recargar
+            
+            # Limpiar sesión y volver al registro
+            st.session_state.registered = False
+            st.session_state.user_data = {}
+            st.session_state.start_time = None
+            
+            time.sleep(3) # Esperar 3 seg para que el usuario lea el mensaje
+            st.rerun()
             
         except sqlite3.IntegrityError:
-            st.warning("⚠️ Ya existe un registro de capacitación para su cédula.")
+            # Esto maneja si la cédula ya se registró (si la DB lo tiene como UNIQUE)
+            st.warning("⚠️ Su cédula ya ha sido registrada en este ciclo de capacitación.")
         except Exception as e:
             st.error(f"❌ No se pudo guardar el registro. Error: {e}")
-
-# -------------------------------------------------------------
-# --- CONTROLADOR PRINCIPAL DE LA APP ---
-# -------------------------------------------------------------
-
-if not st.session_state.logged_in:
-    show_login_page()
-else:
-    # Mostrar botón de cierre de sesión en la barra lateral
-    st.sidebar.button("Cerrar Sesión 🚪", on_click=logout)
-    
-    role = st.session_state.user_data.get('role')
-    
-    if role == 'admin':
-        show_admin_panel()
-    elif role == 'user':
-        show_user_portal()
-    else:
-        # Manejo de roles no reconocidos
-        st.error("Rol de usuario no reconocido. Cerrando sesión...")
-        logout()
