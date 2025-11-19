@@ -3,7 +3,8 @@ import streamlit as st
 import time
 from datetime import datetime
 import sqlite3 
-from database import init_db, add_record # Asegúrate de que database.py exista y tenga estas funciones
+# Asegúrate de que database.py exista y contenga init_db y add_record
+from database import init_db, add_record 
 import streamlit.components.v1 as components 
 
 # --- Configuración de la página ---
@@ -78,7 +79,7 @@ else:
     st.title(f"Portal de Capacitación: {area} 🚀")
     
     # ------------------------------------------------------------------
-    # --- BARRA LATERAL (Inspirada en LMS) ---
+    # --- BARRA LATERAL (Perfil y Control) ---
     # ------------------------------------------------------------------
     with st.sidebar:
         st.header("👤 Perfil de Participante")
@@ -87,7 +88,7 @@ else:
         
         st.markdown("---")
         
-        # Mostrar cronómetro (FR4) en la barra lateral
+        # Mostrar cronómetro (FR4)
         tiempo_transcurrido = datetime.now() - start_time
         st.metric(
             label="⏳ Tiempo Transcurrido",
@@ -139,7 +140,7 @@ else:
     if not videos_del_area:
         st.warning("⚠️ No hay videos asignados para su área en este momento.")
     else:
-        # Usamos st.tabs para organizar cada video como un módulo, mejorando la interfaz LMS
+        # Usamos st.tabs para organizar cada video como un módulo
         titulos = [video["titulo"] for video in videos_del_area]
         tabs = st.tabs(titulos)
         
@@ -148,10 +149,11 @@ else:
             with tab:
                 st.subheader(f"Módulo: {video['titulo']}")
                 st.markdown("---")
-                # Usar st.components.v1.iframe para contenido incrustado
+                # Usar st.components.v1.iframe para contenido incrustado (SharePoint/YouTube embed)
                 components.iframe(video["url"], height=480, width=854, scrolling=False)
                 
                 if i < len(titulos) - 1:
+                    # Guía al usuario a la siguiente pestaña/módulo
                     st.info(f"✅ Haz clic en la pestaña **{titulos[i+1]}** para continuar.")
                 else:
-                    st.success("¡Felicidades! Has completado todos los módulos. Presiona el botón 'He finalizado...' en la barra lateral.")
+                    st.success("¡Felicidades! Has completado todos los módulos. Presiona el botón 'He finalizado...' en la barra lateral para registrar tu tiempo.")
